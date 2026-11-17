@@ -95,25 +95,23 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .venue { display: grid; grid-template-rows: auto 1fr; border-radius: 24px; overflow: hidden; background: #fff; border: 1px solid #eef0f4; box-shadow: var(--shadow); text-decoration: none; color: inherit; transition: transform .2s; min-width: 0; }
 .venue:hover { transform: translateY(-3px); }
 .poster { position: relative; aspect-ratio: 16 / 10; max-width: 100%; background: #0b0f1a; }
-.venue.mh .poster { background: radial-gradient(80% 70% at 50% 0%, rgba(255,154,61,.35), transparent 70%), #0d1018; }
 .venue.ia .poster { background: radial-gradient(80% 70% at 30% 0%, rgba(59,76,245,.5), transparent 70%), #0a1020; }
 .plan-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
 .poster .now { position: absolute; left: 14px; top: 14px; background: var(--blue); color: #fff; font: 700 12px var(--f); padding: 5px 11px; border-radius: 999px; }
-.venue.mh .poster .now { background: var(--mh); }
-.vbody { display: grid; gap: 10px; padding: 18px 20px 20px; align-content: start; }
+.vbody { display: grid; gap: 10px; padding: 18px 20px 20px; grid-template-rows: auto auto auto 1fr auto; }
+.vtags { flex-wrap: nowrap; overflow: hidden; }
+.vtags li { white-space: nowrap; }
 .vbody h4 { margin: 0; font: 900 24px var(--f); letter-spacing: -0.04em; }
 .vbody .loc { margin: 0; font-size: 14px; color: var(--muted); }
 .vtags { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
 .vtags li { font: 700 12.5px var(--f); padding: 5px 10px; border-radius: 8px; background: var(--sunken); color: #4b505b; }
 .vtags li.hl { background: var(--blue-soft); color: var(--blue); }
-.venue.mh .vtags li.hl { background: #fff1e4; color: #d4660f; }
 .price { display: flex; align-items: baseline; gap: 6px; font-size: 13px; color: var(--muted); }
 .price b { font: 900 20px var(--f); color: var(--fg); letter-spacing: -0.03em; }
-.vfoot { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-top: 12px; border-top: 1px solid var(--line); flex-wrap: wrap; }
+.vfoot { align-self: end; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-top: 12px; border-top: 1px solid var(--line); flex-wrap: wrap; }
 .credit { font-size: 12.5px; color: var(--muted); }
 .credit strong { color: var(--fg); }
 .go { background: var(--blue); color: #fff; font: 800 14.5px var(--f); padding: 11px 18px; border-radius: 14px; white-space: nowrap; }
-.venue.mh .go { background: var(--black); }
 .venue[hidden] { display: none; }
 
 /* compare */
@@ -248,7 +246,7 @@ tbody tr:last-child th, tbody tr:last-child td { border-bottom: 0; }
           <h4>인스파이어 아레나</h4>
           <p class="loc">인천 영종도 · K팝 콘서트 엔드 스테이지 배치</p>
           <ul class="vtags"><li class="hl">좌석표 착석</li><li>1~3층 15,000석</li><li>4분할 시야</li><li>부스 5곳</li></ul>
-          <div class="price"><span>1층 R석</span><b>154,000원</b><span>예시</span></div>
+          <div class="price"><span>1층 R석</span><b>154,000원</b><span>예시 가격</span></div>
           <div class="vfoot"><span class="credit">비공식 학생 컨셉 · 인스파이어와 무관</span><span class="go">입장하기</span></div>
         </div>
       </a>
@@ -256,32 +254,32 @@ tbody tr:last-child th, tbody tr:last-child td { border-bottom: 0; }
         <div class="poster"><span class="now">지금 입장</span>
           <svg class="plan-svg" viewBox="0 -4 320 210" aria-hidden="true">
           <!-- hall shell -->
-          <rect x="70" y="30" width="180" height="150" rx="6" fill="#0d1018" stroke="rgba(255,179,71,.35)" stroke-width="1.5"/>
+          <rect x="70" y="30" width="180" height="150" rx="6" fill="#0b1219" stroke="rgba(111,242,207,.4)" stroke-width="1.5"/>
           <!-- stage -->
-          <rect x="90" y="38" width="140" height="26" rx="3" fill="#ffb347" opacity=".85"/>
-          <text x="160" y="56" text-anchor="middle" font-family="Noto Sans KR, sans-serif" font-size="9" fill="#241400">STAGE</text>
+          <rect x="90" y="38" width="140" height="26" rx="3" fill="#6ff2cf" opacity=".9"/>
+          <text x="160" y="56" text-anchor="middle" font-family="Noto Sans KR, sans-serif" font-size="9" fill="#04120e">STAGE</text>
           <!-- standing floor -->
-          <rect x="84" y="72" width="152" height="62" rx="3" fill="rgba(139,123,255,.16)" stroke="rgba(139,123,255,.5)" stroke-dasharray="3 3"/>
-          <text x="160" y="107" text-anchor="middle" font-family="Noto Sans KR, sans-serif" font-size="10" fill="#cfc8ff">스탠딩</text>
+          <rect x="84" y="72" width="152" height="62" rx="3" fill="#0b1219" stroke="rgba(111,242,207,.35)" stroke-dasharray="3 3"/>
+          <text x="160" y="107" text-anchor="middle" font-family="Noto Sans KR, sans-serif" font-size="10" fill="#bdf7e8">스탠딩</text>
           <!-- 2F balcony -->
-          <path d="M78 140 H242 V172 H78 Z" fill="rgba(255,179,71,.10)" stroke="rgba(255,179,71,.45)"/>
-          <g fill="rgba(255,179,71,.55)">
+          <path d="M78 140 H242 V172 H78 Z" fill="rgba(192,140,255,.10)" stroke="rgba(192,140,255,.5)"/>
+          <g fill="rgba(192,140,255,.6)">
             <rect x="90" y="146" width="140" height="3" rx="1.5"/><rect x="90" y="154" width="140" height="3" rx="1.5"/><rect x="90" y="162" width="140" height="3" rx="1.5"/>
           </g>
-          <text x="246" y="160" font-family="Noto Sans KR, sans-serif" font-size="9" fill="#ffcf8a">2층 지정석</text>
+          <text x="246" y="160" font-family="Noto Sans KR, sans-serif" font-size="9" fill="#e0ccff">2·3층 지정석</text>
           <!-- booths -->
-          <g fill="#ffb347"><circle cx="76" cy="90" r="4"/><circle cx="76" cy="118" r="4"/><circle cx="244" cy="90" r="4"/><circle cx="244" cy="118" r="4"/></g>
-          <text x="20" y="104" font-family="Noto Sans KR, sans-serif" font-size="9" fill="#929bab">부스 4</text>
+          <g fill="#6ff2cf"><circle cx="76" cy="90" r="4"/><circle cx="76" cy="118" r="4"/><circle cx="244" cy="90" r="4"/><circle cx="244" cy="118" r="4"/></g>
+          <text x="20" y="104" font-family="Noto Sans KR, sans-serif" font-size="9" fill="#9fb3c0">부스 4</text>
           <!-- entry -->
           <path d="M150 180 v12 M170 180 v12" stroke="rgba(238,241,246,.5)"/>
-          <text x="160" y="201" text-anchor="middle" font-family="Noto Sans KR, sans-serif" font-size="8" fill="#929bab">ENTRY</text>
+          <text x="160" y="201" text-anchor="middle" font-family="Noto Sans KR, sans-serif" font-size="8" fill="#9fb3c0">ENTRY</text>
         </svg>
         </div>
         <div class="vbody">
           <h4>명화라이브홀</h4>
-          <p class="loc">중소형 라이브홀 · 2층 정면석 2열 21번에서 시작</p>
-          <ul class="vtags"><li class="hl">좌석표 착석</li><li>1층 스탠딩 · 2·3층</li><li>시점 8곳</li><li>좌석 링크·QR</li><li>부스 4곳</li></ul>
-          <div class="price"><span>2층 정면석</span><b>좌석 시야</b><span>바로 체험</span></div>
+          <p class="loc">중소형 라이브홀 · 1층 스탠딩 + 2·3층 지정석</p>
+          <ul class="vtags"><li class="hl">좌석표 착석</li><li>1~3층 라이브홀</li><li>좌석 링크·QR</li><li>부스 4곳</li></ul>
+          <div class="price"><span>2층 정면석</span><b>2열 21번</b><span>에서 시작</span></div>
           <div class="vfoot"><span class="credit">제작 <strong>박진우</strong> · 경기대학교 경영학과</span><span class="go">입장하기</span></div>
         </div>
       </a>
