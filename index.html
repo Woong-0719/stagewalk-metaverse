@@ -1,0 +1,362 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+</head><body>
+<title>라이브홀 & 아레나 메타버스</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap">
+<style>
+/* layout: a ticketing-app home — pill search + chip tabs, a paged hero banner, notice row,
+   shortcut icon grid, venue "poster" list, comparison card, floating pill tab bar */
+:root {
+  --bg: #ffffff;
+  --sunken: #f4f5f8;
+  --line: #e7e9ef;
+  --fg: #17181c;
+  --muted: #7b818d;
+  --blue: #3b4cf5;
+  --blue-soft: #eef0ff;
+  --black: #18191c;
+  --mh: #ff9a3d;
+  --ia: #3b4cf5;
+  --shadow: 0 10px 30px rgba(22, 26, 48, 0.10), 0 1px 3px rgba(22, 26, 48, 0.05);
+  --f: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0; background: var(--bg); color: var(--fg); font-family: var(--f); letter-spacing: -0.01em;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  -webkit-font-smoothing: antialiased;
+}
+a { color: inherit; }
+button { font-family: var(--f); letter-spacing: -0.01em; }
+button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+.wrap { max-width: 980px; margin: 0 auto; padding-block: 0 130px; display: grid; gap: 22px; }
+.wrap > *, .compare > *, .venues > * { min-width: 0; }
+
+/* app bar */
+.appbar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); padding-block: 14px 0; display: grid; gap: 12px; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 11; background: var(--bg); }
+.row { display: flex; align-items: center; gap: 18px; min-width: 0; }
+.wordmark { flex: none; text-decoration: none; color: var(--blue); font: 900 27px/1 var(--f); letter-spacing: -0.05em; display: flex; flex-direction: column; }
+.wordmark span { font-size: 10.5px; letter-spacing: .3em; font-weight: 800; margin-top: 3px; }
+.search { flex: 1; min-width: 0; display: flex; align-items: center; height: 50px; border: 2px solid var(--blue); border-radius: 999px; padding: 0 8px 0 22px; }
+.search input { flex: 1; min-width: 0; border: 0; outline: none; background: transparent; font: 500 16px var(--f); color: var(--fg); }
+.search input::placeholder { color: #8a8f99; }
+.search button { width: 38px; height: 38px; border: 0; background: transparent; color: var(--blue); border-radius: 50%; cursor: pointer; display: grid; place-items: center; }
+.search button:hover { background: var(--blue-soft); }
+.chips { display: flex; align-items: center; gap: 4px; overflow-x: auto; scrollbar-width: none; padding-bottom: 12px; border-bottom: 1px solid #f0f1f5; }
+.chips::-webkit-scrollbar { display: none; }
+.chips button { flex: none; border: 0; background: transparent; color: #6b707b; font: 700 17px var(--f); padding: 9px 18px; border-radius: 999px; cursor: pointer; white-space: nowrap; }
+.chips button[aria-pressed="true"] { background: var(--black); color: #fff; }
+.chips button.dot { position: relative; color: var(--fg); font-weight: 800; }
+.chips button.dot::after { content: ""; position: absolute; top: 6px; right: 8px; width: 7px; height: 7px; border-radius: 50%; background: var(--blue); }
+.chips .sep { width: 1px; height: 22px; background: #d9dce3; margin: 0 8px; flex: none; }
+.chips .beta { font: italic 600 13px var(--f); color: var(--blue); margin-left: 3px; vertical-align: super; }
+
+/* hero carousel */
+.hero { position: relative; border-radius: 28px; overflow: hidden; aspect-ratio: 16 / 8.4; max-width: 100%; box-shadow: var(--shadow); }
+.slides { display: flex; height: 100%; transition: transform .6s cubic-bezier(.3,.7,.2,1); }
+.slide { flex: 0 0 100%; height: 100%; position: relative; display: grid; align-content: center; justify-items: center; text-align: center; padding: 24px; color: #fff; text-decoration: none; overflow: hidden; }
+.slide.ia { background: radial-gradient(70% 90% at 80% 10%, rgba(126,236,210,.55), transparent 60%), radial-gradient(60% 80% at 15% 90%, rgba(174,128,255,.6), transparent 60%), linear-gradient(140deg, #1b2a8f, #3b4cf5 55%, #6b5cf6); }
+.slide.mh { background: radial-gradient(60% 80% at 85% 20%, rgba(255,214,140,.7), transparent 60%), radial-gradient(70% 90% at 10% 90%, rgba(139,123,255,.65), transparent 60%), linear-gradient(140deg, #ff7a2f, #ff9a3d 45%, #7b5cf6); }
+.slide .kicker { font: 800 clamp(15px, 2.4vw, 22px) var(--f); opacity: .95; }
+.slide h2 { margin: 10px 0 12px; font: 900 clamp(36px, 8vw, 78px)/1 var(--f); letter-spacing: -0.05em; text-shadow: 0 6px 24px rgba(0,0,0,.18); }
+.slide p { margin: 0; font: 700 clamp(13px, 2.1vw, 19px)/1.5 var(--f); opacity: .95; }
+.slide .ring { position: absolute; border-radius: 50%; border: 2px solid rgba(255,255,255,.25); }
+.pager { position: absolute; right: 18px; bottom: 16px; display: flex; gap: 8px; }
+.pager button, .pager span { height: 38px; border: 0; border-radius: 999px; background: rgba(24,25,28,.55); color: #fff; font: 700 14px var(--f); display: inline-flex; align-items: center; gap: 8px; padding: 0 14px; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+.pager button { cursor: pointer; }
+.pager .pp { width: 38px; padding: 0; justify-content: center; }
+
+/* notice */
+.notice { display: flex; align-items: center; gap: 12px; background: var(--sunken); border-radius: 22px; padding: 14px 18px; font-size: 15.5px; font-weight: 500; }
+.tag { flex: none; background: var(--blue); color: #fff; font: 700 13px var(--f); padding: 5px 13px; border-radius: 999px; }
+.notice span:last-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* shortcut grid */
+.shortcuts { display: grid; grid-template-columns: repeat(6, 1fr); gap: 18px 10px; }
+.sc { display: grid; justify-items: center; gap: 8px; text-decoration: none; border: 0; background: none; padding: 0; cursor: pointer; color: var(--fg); position: relative; }
+.sc .ic { width: 78px; height: 78px; border-radius: 26px; background: #f6f7fa; border: 1px solid #eef0f4; display: grid; place-items: center; transition: transform .2s; }
+.sc:hover .ic { transform: translateY(-3px); }
+.sc .ic svg { width: 46px; height: 46px; }
+.sc b { font: 700 15px var(--f); white-space: nowrap; }
+.badge { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: #fff; color: var(--blue); border: 1.5px solid #c9cefd; font: 700 11px var(--f); padding: 2px 9px; border-radius: 999px; white-space: nowrap; z-index: 1; }
+
+/* sections */
+.sec-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.sec-head h3 { margin: 0; font: 900 22px var(--f); letter-spacing: -0.04em; }
+.sec-head span { font-size: 13px; color: var(--muted); }
+.venues { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.venue { display: grid; grid-template-rows: auto 1fr; border-radius: 24px; overflow: hidden; background: #fff; border: 1px solid #eef0f4; box-shadow: var(--shadow); text-decoration: none; color: inherit; transition: transform .2s; min-width: 0; }
+.venue:hover { transform: translateY(-3px); }
+.poster { position: relative; aspect-ratio: 16 / 10; max-width: 100%; background: #0b0f1a; }
+.venue.mh .poster { background: radial-gradient(80% 70% at 50% 0%, rgba(255,154,61,.35), transparent 70%), #0d1018; }
+.venue.ia .poster { background: radial-gradient(80% 70% at 30% 0%, rgba(59,76,245,.5), transparent 70%), #0a1020; }
+.plan-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.poster .now { position: absolute; left: 14px; top: 14px; background: var(--blue); color: #fff; font: 700 12px var(--f); padding: 5px 11px; border-radius: 999px; }
+.venue.mh .poster .now { background: var(--mh); }
+.vbody { display: grid; gap: 10px; padding: 18px 20px 20px; align-content: start; }
+.vbody h4 { margin: 0; font: 900 24px var(--f); letter-spacing: -0.04em; }
+.vbody .loc { margin: 0; font-size: 14px; color: var(--muted); }
+.vtags { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.vtags li { font: 700 12.5px var(--f); padding: 5px 10px; border-radius: 8px; background: var(--sunken); color: #4b505b; }
+.vtags li.hl { background: var(--blue-soft); color: var(--blue); }
+.venue.mh .vtags li.hl { background: #fff1e4; color: #d4660f; }
+.price { display: flex; align-items: baseline; gap: 6px; font-size: 13px; color: var(--muted); }
+.price b { font: 900 20px var(--f); color: var(--fg); letter-spacing: -0.03em; }
+.vfoot { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-top: 12px; border-top: 1px solid var(--line); flex-wrap: wrap; }
+.credit { font-size: 12.5px; color: var(--muted); }
+.credit strong { color: var(--fg); }
+.go { background: var(--blue); color: #fff; font: 800 14.5px var(--f); padding: 11px 18px; border-radius: 14px; white-space: nowrap; }
+.venue.mh .go { background: var(--black); }
+.venue[hidden] { display: none; }
+
+/* compare */
+.compare { border-radius: 24px; background: var(--sunken); padding: 20px; display: grid; gap: 14px; }
+.tbl { overflow-x: auto; background: #fff; border-radius: 18px; }
+table { width: 100%; border-collapse: collapse; font-size: 14.5px; min-width: 580px; }
+th, td { text-align: left; padding: 13px 16px; border-bottom: 1px solid var(--line); vertical-align: top; line-height: 1.55; }
+thead th { font-size: 13px; font-weight: 800; }
+thead th.mh { color: #d4660f; } thead th.ia { color: var(--blue); }
+tbody th { color: var(--muted); font-weight: 500; width: 17%; white-space: nowrap; }
+tbody tr:last-child th, tbody tr:last-child td { border-bottom: 0; }
+#vTitle, #cmp, #top { scroll-margin-top: 150px; }
+.fineprint { margin: 0; font-size: 12.5px; color: var(--muted); line-height: 1.6; }
+
+/* bottom tab bar */
+.tabbar { position: fixed; z-index: 10; left: 50%; transform: translateX(-50%); bottom: calc(14px + env(safe-area-inset-bottom, 0px)); width: min(600px, calc(100vw - 32px));
+  display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; padding: 7px; background: rgba(255,255,255,.97); border: 1px solid #e3e5ea; border-radius: 999px; box-shadow: 0 10px 30px rgba(22,26,48,.14); }
+.tabbar > * { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; height: 62px; border: 0; background: transparent; color: var(--fg); font: 700 13px var(--f); text-decoration: none; border-radius: 999px; cursor: pointer; }
+.tabbar svg { width: 28px; height: 28px; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.tabbar > *:hover { background: var(--sunken); }
+.tabbar .home { background: #ececef; }
+.tabbar .home svg { fill: currentColor; stroke: none; }
+
+@media (max-width: 760px) {
+  .wordmark { font-size: 21px; }
+  .wordmark span { font-size: 8.5px; }
+  .row { gap: 12px; }
+  .search { height: 44px; padding-left: 16px; }
+  .search input { font-size: 14.5px; }
+  .chips button { font-size: 15.5px; padding: 8px 14px; }
+  .hero { aspect-ratio: 1 / 0.68; border-radius: 24px; }
+  .shortcuts { grid-template-columns: repeat(3, 1fr); }
+  .sc .ic { width: 68px; height: 68px; border-radius: 22px; }
+  .sc .ic svg { width: 40px; height: 40px; }
+  .sc b { font-size: 14px; }
+  .venues { grid-template-columns: 1fr; }
+  .tabbar > * { height: 54px; font-size: 12px; }
+  .tabbar svg { width: 24px; height: 24px; }
+}
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } .slides, .venue, .sc .ic { transition: none; } }
+</style>
+
+<main class="wrap" id="top">
+  <header class="appbar">
+    <div class="row">
+      <a class="wordmark" href="./" aria-label="처음으로">STAGE<span>WALK</span></a>
+      <form class="search" id="search" role="search">
+        <label for="q" hidden>공연장 검색</label>
+        <input id="q" type="search" placeholder="공연장 메타버스는 여기서 · 인스파이어, 명화" autocomplete="off" enterkeyhint="search">
+        <button type="submit" aria-label="검색"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></svg></button>
+      </form>
+    </div>
+    <nav class="chips" aria-label="공연장 분류">
+      <button type="button" data-f="all" aria-pressed="true">홈</button>
+      <button type="button" data-f="all-venues" class="dot" aria-pressed="false">공연장</button>
+      <span class="sep" aria-hidden="true"></span>
+      <button type="button" data-f="ia" aria-pressed="false">아레나</button>
+      <button type="button" data-f="mh" aria-pressed="false">라이브홀</button>
+      <button type="button" data-f="cmp" aria-pressed="false">비교하기<span class="beta">Beta</span></button>
+    </nav>
+  </header>
+
+  <section class="hero" aria-roledescription="carousel" aria-label="추천 공연장">
+    <div class="slides" id="slides">
+      <a class="slide ia" href="inspire.html" aria-label="인스파이어 아레나 메타버스 입장">
+        <span class="ring" style="width:420px;height:420px;right:-120px;top:-180px"></span>
+        <span class="ring" style="width:260px;height:260px;left:-90px;bottom:-120px"></span>
+        <div class="kicker">입장 전에 미리 앉아 보는</div>
+        <h2>INSPIRE ARENA</h2>
+        <p>1~3층 15,000석 · 좌석마다 3D 시야 확인<br>좌석표에서 고르고 그 자리에 바로 착석</p>
+      </a>
+      <a class="slide mh" href="https://claude.ai/artifact/1bBSSsjyWLAEsFeGRCsBuC" target="_blank" rel="noopener" aria-label="명화라이브홀 메타버스 입장 (새 탭)">
+        <span class="ring" style="width:380px;height:380px;left:-140px;top:-160px"></span>
+        <span class="ring" style="width:240px;height:240px;right:-70px;bottom:-110px"></span>
+        <div class="kicker">무대 코앞 스탠딩부터</div>
+        <h2>명화라이브홀</h2>
+        <p>스탠딩 + 2층 지정석 · 부스 4곳<br>제작 박진우 · 새 탭에서 열려요</p>
+      </a>
+    </div>
+    <div class="pager">
+      <button type="button" class="pp" id="pp" aria-label="자동 넘김 멈춤">❚❚</button>
+      <button type="button" id="next" aria-label="다음 배너"><span id="cnt">1 / 2</span> ＋</button>
+    </div>
+  </section>
+
+  <div class="notice"><span class="tag">공지</span><span>비공식 학생 컨셉 프로젝트예요 · 공연명과 가격은 예시이며 실제 예매는 되지 않아요</span></div>
+
+  <nav class="shortcuts" aria-label="바로가기">
+    <a class="sc" href="inspire.html"><span class="badge">지금 체험</span><span class="ic"><svg viewBox="0 0 48 48" aria-hidden="true"><defs><linearGradient id="g1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8a7bff"/><stop offset="1" stop-color="#3b4cf5"/></linearGradient></defs><path d="M12 22V14a5 5 0 0 1 5-5h14a5 5 0 0 1 5 5v8" fill="url(#g1)"/><rect x="8" y="22" width="32" height="9" rx="4" fill="#5b6bff"/><rect x="12" y="31" width="4" height="9" rx="2" fill="#2c38c9"/><rect x="32" y="31" width="4" height="9" rx="2" fill="#2c38c9"/></svg></span><b>좌석 시야</b></a>
+    <a class="sc" href="inspire.html"><span class="ic"><svg viewBox="0 0 48 48" aria-hidden="true"><defs><linearGradient id="g2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6ff2cf"/><stop offset="1" stop-color="#20b3a0"/></linearGradient></defs><ellipse cx="24" cy="30" rx="19" ry="11" fill="url(#g2)"/><ellipse cx="24" cy="28" rx="12" ry="6" fill="#e9fffa"/><rect x="17" y="12" width="14" height="10" rx="2" fill="#3b4cf5"/><path d="M24 22v6" stroke="#3b4cf5" stroke-width="3"/></svg></span><b>아레나</b></a>
+    <a class="sc" href="https://claude.ai/artifact/1bBSSsjyWLAEsFeGRCsBuC" target="_blank" rel="noopener"><span class="ic"><svg viewBox="0 0 48 48" aria-hidden="true"><defs><linearGradient id="g3" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffc06a"/><stop offset="1" stop-color="#ff7a2f"/></linearGradient></defs><circle cx="19" cy="17" r="9" fill="url(#g3)"/><path d="M24 22 38 37" stroke="#7b5cf6" stroke-width="6" stroke-linecap="round"/><circle cx="19" cy="17" r="4" fill="#fff" opacity=".5"/></svg></span><b>라이브홀</b></a>
+    <a class="sc" href="inspire.html"><span class="ic"><svg viewBox="0 0 48 48" aria-hidden="true"><rect x="7" y="7" width="15" height="15" rx="4" fill="#ff8fb6"/><rect x="26" y="7" width="15" height="15" rx="4" fill="#8a7bff"/><rect x="7" y="26" width="15" height="15" rx="4" fill="#6ff2cf"/><rect x="26" y="26" width="15" height="15" rx="4" fill="#ffc06a"/></svg></span><b>4분할 보기</b></a>
+    <button type="button" class="sc" data-jump="cmp"><span class="badge">NEW</span><span class="ic"><svg viewBox="0 0 48 48" aria-hidden="true"><rect x="8" y="24" width="7" height="16" rx="3" fill="#a9b2ff"/><rect x="20" y="14" width="7" height="26" rx="3" fill="#3b4cf5"/><rect x="32" y="20" width="7" height="20" rx="3" fill="#ff9a3d"/></svg></span><b>행동 지표</b></button>
+    <button type="button" class="sc" data-jump="cmp"><span class="ic"><svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="17" cy="24" r="11" fill="#ff9a3d"/><circle cx="31" cy="24" r="11" fill="#3b4cf5" opacity=".85"/><text x="24" y="28.5" text-anchor="middle" font-family="Noto Sans KR, sans-serif" font-weight="900" font-size="11" fill="#fff">VS</text></svg></span><b>비교하기</b></button>
+  </nav>
+
+  <section aria-labelledby="vTitle" style="display:grid;gap:14px">
+    <div class="sec-head"><h3 id="vTitle">지금 입장할 수 있는 공연장</h3><span id="vCount">2곳</span></div>
+    <div class="venues">
+      <a class="venue ia" data-k="ia 인스파이어 아레나 inspire arena 영종도 인천" href="inspire.html">
+        <div class="poster"><span class="now">지금 입장</span>
+          <svg class="plan-svg" viewBox="0 0 320 200" aria-hidden="true">
+          <!-- 3 levels (outer to inner) -->
+          <path d="M24 22 H176 V178 H24 Z" fill="rgba(192,140,255,.07)" stroke="rgba(192,140,255,.4)"/>
+          <path d="M38 22 H162 V162 H38 Z" fill="rgba(111,242,207,.06)" stroke="rgba(111,242,207,.35)"/>
+          <path d="M52 22 H148 V146 H52 Z" fill="rgba(111,242,207,.10)" stroke="rgba(111,242,207,.55)"/>
+          <!-- floor -->
+          <rect x="62" y="44" width="76" height="90" rx="2" fill="#0b1219" stroke="rgba(111,242,207,.35)" stroke-dasharray="3 3"/>
+          <!-- stage + runway + B-stage -->
+          <rect x="58" y="22" width="84" height="18" rx="2" fill="#6ff2cf" opacity=".9"/>
+          <rect x="96" y="40" width="8" height="34" fill="#6ff2cf" opacity=".7"/>
+          <polygon points="94,74 106,74 106,82 100,87 94,82" fill="#6ff2cf" opacity=".85"/>
+          <rect x="64" y="40" width="7" height="7" fill="#6ff2cf" opacity=".75"/><rect x="129" y="40" width="7" height="7" fill="#6ff2cf" opacity=".75"/>
+          <text x="100" y="34" text-anchor="middle" font-family="Noto Sans KR, sans-serif" font-size="8" fill="#04120e">STAGE</text>
+          <text x="100" y="114" text-anchor="middle" font-family="Noto Sans KR, sans-serif" font-size="9" fill="#bdf7e8">플로어</text>
+          <!-- level labels -->
+          <text x="182" y="168" font-family="Noto Sans KR, sans-serif" font-size="8" fill="#c08cff">3F</text>
+          <text x="166" y="156" font-family="Noto Sans KR, sans-serif" font-size="8" fill="#8fe9d2">2F</text>
+          <text x="152" y="142" font-family="Noto Sans KR, sans-serif" font-size="8" fill="#6ff2cf">1F</text>
+          <!-- path: gate → lobby → rotunda → aurora street -->
+          <path d="M100 178 V184 H210" stroke="rgba(238,241,246,.35)" fill="none" stroke-dasharray="2 3"/>
+          <rect x="200" y="160" width="34" height="34" rx="3" fill="#0d1520" stroke="rgba(111,242,207,.4)"/>
+          <text x="217" y="181" text-anchor="middle" font-family="Noto Sans KR, sans-serif" font-size="8" fill="#bdf7e8">로비</text>
+          <circle cx="262" cy="177" r="15" fill="#0d1520" stroke="rgba(192,140,255,.55)"/>
+          <text x="262" y="180" text-anchor="middle" font-family="Noto Sans KR, sans-serif" font-size="7.5" fill="#e0ccff">로툰다</text>
+          <rect x="284" y="40" width="22" height="130" rx="3" fill="rgba(111,242,207,.12)" stroke="rgba(111,242,207,.45)"/>
+          <path d="M277 177 H295 V170" stroke="rgba(238,241,246,.35)" fill="none" stroke-dasharray="2 3"/>
+          <text x="295" y="104" text-anchor="middle" font-family="Noto Sans KR, sans-serif" font-size="8" fill="#bdf7e8" transform="rotate(-90 295 104)">오로라 거리</text>
+        </svg>
+        </div>
+        <div class="vbody">
+          <h4>인스파이어 아레나</h4>
+          <p class="loc">인천 영종도 · K팝 콘서트 엔드 스테이지 배치</p>
+          <ul class="vtags"><li class="hl">좌석표 착석</li><li>1~3층 15,000석</li><li>4분할 시야</li><li>부스 5곳</li></ul>
+          <div class="price"><span>1층 R석</span><b>154,000원</b><span>예시</span></div>
+          <div class="vfoot"><span class="credit">비공식 학생 컨셉 · 인스파이어와 무관</span><span class="go">입장하기</span></div>
+        </div>
+      </a>
+      <a class="venue mh" data-k="mh 명화라이브홀 명화 라이브홀" href="https://claude.ai/artifact/1bBSSsjyWLAEsFeGRCsBuC" target="_blank" rel="noopener">
+        <div class="poster"><span class="now">지금 입장</span>
+          <svg class="plan-svg" viewBox="0 -4 320 210" aria-hidden="true">
+          <!-- hall shell -->
+          <rect x="70" y="30" width="180" height="150" rx="6" fill="#0d1018" stroke="rgba(255,179,71,.35)" stroke-width="1.5"/>
+          <!-- stage -->
+          <rect x="90" y="38" width="140" height="26" rx="3" fill="#ffb347" opacity=".85"/>
+          <text x="160" y="56" text-anchor="middle" font-family="Noto Sans KR, sans-serif" font-size="9" fill="#241400">STAGE</text>
+          <!-- standing floor -->
+          <rect x="84" y="72" width="152" height="62" rx="3" fill="rgba(139,123,255,.16)" stroke="rgba(139,123,255,.5)" stroke-dasharray="3 3"/>
+          <text x="160" y="107" text-anchor="middle" font-family="Noto Sans KR, sans-serif" font-size="10" fill="#cfc8ff">스탠딩</text>
+          <!-- 2F balcony -->
+          <path d="M78 140 H242 V172 H78 Z" fill="rgba(255,179,71,.10)" stroke="rgba(255,179,71,.45)"/>
+          <g fill="rgba(255,179,71,.55)">
+            <rect x="90" y="146" width="140" height="3" rx="1.5"/><rect x="90" y="154" width="140" height="3" rx="1.5"/><rect x="90" y="162" width="140" height="3" rx="1.5"/>
+          </g>
+          <text x="246" y="160" font-family="Noto Sans KR, sans-serif" font-size="9" fill="#ffcf8a">2층 지정석</text>
+          <!-- booths -->
+          <g fill="#ffb347"><circle cx="76" cy="90" r="4"/><circle cx="76" cy="118" r="4"/><circle cx="244" cy="90" r="4"/><circle cx="244" cy="118" r="4"/></g>
+          <text x="20" y="104" font-family="Noto Sans KR, sans-serif" font-size="9" fill="#929bab">부스 4</text>
+          <!-- entry -->
+          <path d="M150 180 v12 M170 180 v12" stroke="rgba(238,241,246,.5)"/>
+          <text x="160" y="201" text-anchor="middle" font-family="Noto Sans KR, sans-serif" font-size="8" fill="#929bab">ENTRY</text>
+        </svg>
+        </div>
+        <div class="vbody">
+          <h4>명화라이브홀</h4>
+          <p class="loc">중소형 라이브홀 · 스탠딩 앞열에서 시작</p>
+          <ul class="vtags"><li class="hl">좌석표 시야</li><li>스탠딩 + 2층 지정석</li><li>시점 5곳</li><li>부스 4곳</li></ul>
+          <div class="price"><span>새 탭에서 열려요</span></div>
+          <div class="vfoot"><span class="credit">제작 <strong>박진우</strong> · 경기대학교 경영학과</span><span class="go">입장하기 ↗</span></div>
+        </div>
+      </a>
+    </div>
+    <p class="fineprint" id="noMatch" hidden>검색한 공연장이 없어요. '인스파이어'나 '명화'로 찾아 보세요.</p>
+  </section>
+
+  <section class="compare" id="cmp" aria-labelledby="cmpTitle">
+    <div class="sec-head"><h3 id="cmpTitle">두 메타버스 비교</h3><span>마케팅 지표 관점</span></div>
+    <div class="tbl">
+      <table>
+        <thead><tr><th scope="col"></th><th scope="col" class="mh">명화라이브홀</th><th scope="col" class="ia">인스파이어 아레나</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">공간 유형</th><td>라이브홀 · 스탠딩 중심</td><td>다목적 아레나 · 지정석 중심</td></tr>
+          <tr><th scope="row">시작 위치</th><td>스탠딩 앞열</td><td>오로라 거리 (리조트 몰)</td></tr>
+          <tr><th scope="row">층 구성</th><td>1층 스탠딩 · 2층 지정석</td><td>플로어 스탠딩 · 1층 가변석 · 2층 · 3층</td></tr>
+          <tr><th scope="row">좌석 시야</th><td>좌석표에서 자리별 착석 · 시점 5곳</td><td>구역도 59곳 + 좌석표 착석 · W/S/A/D로 옮겨 앉기 · 4분할 시야</td></tr>
+          <tr><th scope="row">부스 전환</th><td>구매 · 쿠폰 · 알림</td><td>좌석 예매 · 응원봉 구매 · 쿠폰 · 패키지 알림 · UGC 챌린지</td></tr>
+          <tr><th scope="row">행동 지표</th><td>체류시간 · 이동거리 · 부스 방문 · 전환율</td><td>같은 지표 + 고객 여정 4단계 · 구역별 체류 · 좌석별 시야 기록</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="fineprint">두 페이지 모두 비공식 학생 프로젝트예요. 명화라이브홀은 원본 페이지가 새 탭에서 열려요.</p>
+  </section>
+</main>
+
+<nav class="tabbar" aria-label="메뉴">
+  <button type="button" data-jump="vTitle"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h9M4 12h6M4 18h9"/><circle cx="16.5" cy="11.5" r="4"/><path d="m19.5 14.5 2.5 2.5"/></svg><span>공연장</span></button>
+  <a href="inspire.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 11V6a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v5"/><path d="M4 11h16v4H4z"/><path d="M6 15v5M18 15v5"/></svg><span>좌석 시야</span></a>
+  <button type="button" class="home" data-jump="top"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg><span>홈</span></button>
+  <button type="button" data-jump="cmp"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span>비교</span></button>
+  <a href="https://claude.ai/artifact/1bBSSsjyWLAEsFeGRCsBuC" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="4"/><path d="m12 11 7 8"/></svg><span>라이브홀</span></a>
+</nav>
+
+<script>
+(() => {
+  const $ = s => document.querySelector(s);
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // hero carousel
+  const N = 2; let idx = 0, playing = !reduce, timer = null;
+  const show = i => { idx = (i + N) % N; $('#slides').style.transform = `translateX(-${idx * 100}%)`; $('#cnt').textContent = `${idx + 1} / ${N}`; };
+  const start = () => { clearInterval(timer); if (playing) timer = setInterval(() => show(idx + 1), 4500); };
+  $('#next').addEventListener('click', () => { show(idx + 1); start(); });
+  $('#pp').addEventListener('click', () => {
+    playing = !playing; $('#pp').textContent = playing ? '❚❚' : '▶';
+    $('#pp').setAttribute('aria-label', playing ? '자동 넘김 멈춤' : '자동 넘김 시작'); start();
+  });
+  if (reduce) $('#pp').textContent = '▶';
+  start();
+
+  // jumps
+  const jump = id => { const el = document.getElementById(id); if (el) el.scrollIntoView({ block: 'start' }); };
+  document.querySelectorAll('[data-jump]').forEach(b => b.addEventListener('click', () => jump(b.dataset.jump)));
+
+  // filters + search
+  const venues = [...document.querySelectorAll('.venue')];
+  function filter(fn) {
+    let n = 0; venues.forEach(v => { const ok = fn(v); v.hidden = !ok; if (ok) n++; });
+    $('#vCount').textContent = `${n}곳`; $('#noMatch').hidden = n > 0;
+  }
+  document.querySelectorAll('.chips [data-f]').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('.chips [data-f]').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+    const f = b.dataset.f;
+    if (f === 'cmp') { filter(() => true); jump('cmp'); return; }
+    filter(v => f === 'all' || f === 'all-venues' || v.classList.contains(f));
+    if (f !== 'all') jump('vTitle');
+  }));
+  $('#search').addEventListener('submit', e => {
+    e.preventDefault();
+    const q = $('#q').value.trim().toLowerCase().replace(/\s+/g, '');
+    filter(v => !q || v.dataset.k.replace(/\s+/g, '').toLowerCase().includes(q) || v.dataset.k.toLowerCase().split(' ').some(w => w && q.includes(w)));
+    document.querySelectorAll('.chips [data-f]').forEach(x => x.setAttribute('aria-pressed', String(x.dataset.f === 'all')));
+    jump('vTitle'); $('#q').blur();
+  });
+})();
+</script>
+
+</body></html>

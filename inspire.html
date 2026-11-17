@@ -1,0 +1,1744 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+</head><body>
+<title>인스파이어 아레나 메타버스</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&family=Orbit&display=swap">
+<style>
+/* layout: a ticketing-app shell around the 3D arena — white app bar with pill search and chip tabs on top,
+   a floating pill tab bar at the bottom, white rounded cards docked at the sides */
+:root {
+  --bg: #ffffff;
+  --panel: #ffffff;
+  --sunken: #f4f5f8;
+  --line: #e7e9ef;
+  --fg: #17181c;
+  --muted: #7b818d;
+  --aurora: #3b4cf5;          /* primary blue */
+  --blue-soft: #eef0ff;
+  --orchid: #7a5af8;          /* conversions */
+  --ink: #ffffff;             /* text on blue */
+  --black: #18191c;
+  --night: #18191c;
+  --seat: #4a5cf6;
+  --seat-seen: #b3bbff;
+  --seat-cur: #ff8a3d;
+  --shadow: 0 10px 30px rgba(22, 26, 48, 0.12), 0 1px 3px rgba(22, 26, 48, 0.06);
+  --f-body: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  --f-display: "Noto Sans KR", "Apple SD Gothic Neo", sans-serif;
+  --f-mono: "Noto Sans KR", "Apple SD Gothic Neo", sans-serif;
+  --gl: max(16px, env(safe-area-inset-left, 0px));
+  --gr: max(16px, env(safe-area-inset-right, 0px));
+  --hdr: calc(118px + env(safe-area-inset-top, 0px));
+  --ftr: calc(92px + env(safe-area-inset-bottom, 0px));
+  color-scheme: light;
+}
+html, body { height: 100%; margin: 0; overflow: hidden; }
+body {
+  background: var(--bg); color: var(--fg); font-family: var(--f-body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  -webkit-font-smoothing: antialiased; letter-spacing: -0.01em;
+}
+#scene { position: fixed; inset: var(--hdr) 0 0 0; width: 100%; height: calc(100% - var(--hdr)); display: block; touch-action: none; cursor: grab; }
+#scene:active { cursor: grabbing; }
+[hidden] { display: none !important; }
+.hud { position: fixed; z-index: 5; }
+.glass { background: var(--panel); border: 1px solid #eef0f4; border-radius: 22px; box-shadow: var(--shadow); }
+button { font-family: var(--f-body); letter-spacing: -0.01em; }
+button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid var(--aurora); outline-offset: 2px; }
+
+/* ---------- app bar ---------- */
+.appbar { position: fixed; top: 0; left: 0; right: 0; z-index: 8; background: var(--bg);
+  padding: calc(10px + env(safe-area-inset-top, 0px)) var(--gr) 0 var(--gl); display: grid; gap: 10px; border-bottom: 1px solid #f0f1f5; }
+.appbar-row { display: flex; align-items: center; gap: 18px; min-width: 0; }
+.wordmark { flex: none; text-decoration: none; color: var(--aurora); font: 900 26px/1 var(--f-display); letter-spacing: -0.04em; display: flex; flex-direction: column; }
+.wordmark span { font-size: 11px; letter-spacing: .32em; font-weight: 800; margin-top: 2px; }
+.search { flex: 1; min-width: 0; max-width: 620px; display: flex; align-items: center; height: 46px; border: 2px solid var(--aurora); border-radius: 999px; padding: 0 8px 0 20px; background: #fff; }
+.search input { flex: 1; min-width: 0; border: 0; outline: none; background: transparent; font: 500 15px var(--f-body); color: var(--fg); letter-spacing: -0.01em; }
+.search input::placeholder { color: #8a8f99; }
+.search button { flex: none; width: 36px; height: 36px; border: 0; background: transparent; color: var(--aurora); cursor: pointer; display: grid; place-items: center; border-radius: 50%; }
+.search button:hover { background: var(--blue-soft); }
+.applinks { margin-left: auto; display: flex; gap: 6px; flex: none; }
+.applinks a { font: 700 13px var(--f-body); color: var(--fg); text-decoration: none; padding: 8px 12px; border-radius: 999px; background: var(--sunken); white-space: nowrap; }
+.applinks a:hover { background: var(--blue-soft); color: var(--aurora); }
+.tabs { display: flex; align-items: center; gap: 2px; overflow-x: auto; scrollbar-width: none; padding-bottom: 10px; }
+.tabs::-webkit-scrollbar { display: none; }
+.tabs button { flex: none; border: 0; background: transparent; color: #6b707b; font: 700 15px var(--f-body); padding: 8px 14px; border-radius: 999px; cursor: pointer; white-space: nowrap; }
+.tabs button:hover { color: var(--fg); }
+.tabs button[aria-pressed="true"] { background: var(--black); color: #fff; }
+.tabs .sep { width: 1px; height: 18px; background: #d9dce3; margin: 0 8px; flex: none; }
+.tabs .grp { flex: none; font: 800 15px var(--f-body); color: var(--fg); padding: 0 6px 0 2px; position: relative; }
+.tabs .grp::after { content: ""; position: absolute; top: -2px; right: -1px; width: 6px; height: 6px; border-radius: 50%; background: var(--aurora); }
+
+/* ---------- notice bar (location) + toast ---------- */
+.notice { top: calc(var(--hdr) + 12px); left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 10px; padding: 9px 16px 9px 9px;
+  background: rgba(244,245,248,.96); border-radius: 18px; box-shadow: 0 4px 16px rgba(22,26,48,.08); max-width: calc(100vw - 32px); white-space: nowrap; }
+.tag { flex: none; background: var(--aurora); color: #fff; font: 700 12.5px var(--f-body); padding: 5px 11px; border-radius: 999px; }
+.notice b { font-weight: 700; font-size: 15px; }
+.notice .note { font-size: 12px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; }
+.toast { left: 50%; top: calc(var(--hdr) + 66px); transform: translateX(-50%); display: flex; align-items: center; gap: 10px; padding: 9px 16px 9px 9px; font-size: 14px; max-width: calc(100vw - 32px); border-radius: 18px; }
+.toast b { flex: none; background: var(--aurora); color: #fff; font: 700 12.5px var(--f-body); padding: 5px 11px; border-radius: 999px; }
+
+/* ---------- KPI card ---------- */
+.kpi { top: calc(var(--hdr) + 12px); right: var(--gr); width: min(310px, calc(100vw - 32px)); padding: 16px 18px; max-height: calc(100% - var(--hdr) - var(--ftr) - 24px); overflow: auto; }
+.kpi-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.kpi-head h2 { margin: 0; font-size: 16px; font-weight: 800; display: flex; align-items: center; gap: 8px; letter-spacing: -0.02em; }
+.rec { width: 8px; height: 8px; border-radius: 50%; background: #ff4d5e; animation: rec 1.8s ease-in-out infinite; }
+@keyframes rec { 50% { opacity: .25; } }
+.chip-btn { white-space: nowrap; flex: none; background: var(--sunken); border: 0; color: #4b505b; font: 700 12.5px var(--f-body); border-radius: 999px; padding: 6px 12px; cursor: pointer; }
+.chip-btn:hover { background: var(--blue-soft); color: var(--aurora); }
+.journey { list-style: none; margin: 14px 0 0; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.journey li { padding: 8px 4px 7px; border-radius: 14px; background: var(--sunken); text-align: center; min-width: 0; color: #a2a7b1; transition: background .3s, color .3s; }
+.journey li b { display: block; font-size: 11.5px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.journey li span { display: block; font-size: 11px; margin-top: 2px; font-variant-numeric: tabular-nums; }
+.journey li.reached { color: var(--fg); background: var(--blue-soft); }
+.journey li.here { background: var(--aurora); color: #fff; }
+.journey-cap { display: flex; justify-content: space-between; margin-top: 6px; font-size: 11px; color: var(--muted); }
+.kgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 14px; margin: 14px 0 0; }
+.kgrid div { min-width: 0; }
+.kgrid dt { font-size: 12px; color: var(--muted); }
+.kgrid dd { margin: 2px 0 0; font-weight: 800; font-size: 20px; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+.kgrid dd small { font-size: 12px; color: var(--muted); font-weight: 500; letter-spacing: 0; }
+.kgrid .cv dd { color: var(--aurora); }
+.kgrid .wide { grid-column: 1 / -1; background: var(--sunken); border-radius: 14px; padding: 9px 12px; }
+.meter { height: 5px; background: var(--sunken); border-radius: 3px; margin-top: 6px; overflow: hidden; }
+.meter i { display: block; height: 100%; width: 0; background: var(--aurora); transition: width .4s; }
+.log-title { margin: 16px 0 8px; font-size: 13px; font-weight: 800; }
+.log { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; font-size: 13px; }
+.log li { display: flex; gap: 10px; min-width: 0; }
+.log time { color: var(--muted); flex: none; font-variant-numeric: tabular-nums; font-size: 12px; }
+.log span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.log .cv span { color: var(--aurora); font-weight: 700; }
+.log .empty { color: var(--muted); }
+.kpi .mini { display: none; margin-top: 6px; font-size: 12.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.kpi.collapsed .kpi-body { display: none; }
+.kpi.collapsed .mini { display: block; }
+
+/* ---------- crosshair, booth prompt ---------- */
+.cross { left: 50%; top: calc(var(--hdr) + (100% - var(--hdr)) / 2); width: 14px; height: 14px; margin: -7px 0 0 -7px; pointer-events: none; }
+.cross::before, .cross::after { content: ""; position: absolute; background: rgba(255,255,255,.9); box-shadow: 0 0 0 1px rgba(0,0,0,.25); }
+.cross::before { left: 6px; top: 0; width: 2px; height: 14px; }
+.cross::after { top: 6px; left: 0; height: 2px; width: 14px; }
+.prompt { left: 50%; top: calc(var(--hdr) + (100% - var(--hdr)) / 2 + 34px); transform: translateX(-50%); }
+.prompt button { display: flex; align-items: center; gap: 10px; background: var(--black); color: #fff; border: 0; border-radius: 999px; padding: 8px 18px 8px 8px; font: 700 15px var(--f-body); cursor: pointer; box-shadow: var(--shadow); white-space: nowrap; }
+.prompt kbd { font: 800 12px var(--f-body); background: #fff; color: var(--black); border-radius: 999px; padding: 4px 9px; }
+
+/* ---------- minimap ---------- */
+.map { left: var(--gl); bottom: var(--ftr); padding: 10px; border-radius: 18px; }
+.map canvas { display: block; width: 220px; height: 98px; }
+.map .cap { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); margin-top: 4px; font-weight: 500; }
+
+/* ---------- bottom tab bar ---------- */
+.tabbar { left: 50%; transform: translateX(-50%); bottom: calc(12px + env(safe-area-inset-bottom, 0px)); width: min(560px, calc(100vw - 32px));
+  display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; padding: 6px; background: rgba(255,255,255,.97); border: 1px solid #e3e5ea; border-radius: 999px; box-shadow: 0 8px 28px rgba(22,26,48,.14); }
+.tabbar > * { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; height: 56px; border: 0; background: transparent; color: var(--fg); font: 700 12.5px var(--f-body); text-decoration: none; border-radius: 999px; cursor: pointer; }
+.tabbar svg { width: 26px; height: 26px; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.tabbar > *:hover { background: var(--sunken); }
+.tabbar .home { background: #ececef; }
+.tabbar [aria-pressed="true"] { color: var(--aurora); }
+.tabbar [aria-pressed="true"] svg.fillable { fill: currentColor; }
+.hint { right: var(--gr); bottom: calc(26px + env(safe-area-inset-bottom, 0px)); font-size: 12px; color: var(--muted); text-align: right; max-width: 300px; line-height: 1.7; background: rgba(255,255,255,.92); padding: 8px 12px; border-radius: 14px; pointer-events: none; }
+.hint kbd { font: 700 11px var(--f-body); border: 1px solid var(--line); border-radius: 5px; padding: 0 5px; color: var(--fg); background: #fff; }
+
+/* ---------- booth panel ---------- */
+.panel { right: var(--gr); bottom: var(--ftr); width: min(360px, calc(100vw - 32px)); max-height: calc(100% - var(--hdr) - var(--ftr) - 24px); overflow: auto; padding: 22px; }
+.panel .kind { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: var(--muted); }
+.panel .kind::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--kc, var(--aurora)); }
+.panel h3 { font: 800 24px/1.25 var(--f-display); letter-spacing: -0.03em; margin: 8px 0 10px; text-wrap: balance; }
+.panel p { margin: 0 0 14px; font-size: 14.5px; line-height: 1.65; color: #3c414b; }
+.items { list-style: none; padding: 0; margin: 0 0 10px; background: var(--sunken); border-radius: 16px; padding: 4px 14px; }
+.items li { display: flex; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+.items li:last-child { border-bottom: 0; }
+.items li span:last-child { font-weight: 800; text-align: right; font-variant-numeric: tabular-nums; }
+.panel .fine { font-size: 12px; color: var(--muted); margin: 0 0 14px; }
+.cta { width: 100%; border: 0; border-radius: 16px; padding: 15px; font: 800 15.5px var(--f-body); cursor: pointer; color: #fff; background: var(--aurora); letter-spacing: -0.02em; }
+.cta:hover:not(:disabled) { background: #2f3fe0; }
+.cta:disabled { background: var(--blue-soft); color: var(--aurora); cursor: default; }
+.done-msg { margin-top: 12px; font-size: 13.5px; color: var(--aurora); line-height: 1.5; font-weight: 500; }
+.panel .close { position: absolute; top: 16px; right: 16px; }
+
+/* ---------- touch pad ---------- */
+.pad { left: var(--gl); bottom: var(--ftr); display: grid; grid-template-columns: repeat(3, 50px); grid-template-rows: repeat(2, 50px); gap: 6px; }
+.pad button { background: #fff; border: 1px solid var(--line); color: var(--fg); border-radius: 16px; font-size: 17px; box-shadow: 0 4px 14px rgba(22,26,48,.12); touch-action: none; user-select: none; -webkit-user-select: none; }
+.pad button.on { background: var(--aurora); color: #fff; }
+.pad .up { grid-column: 2; grid-row: 1; } .pad .left { grid-column: 1; grid-row: 2; } .pad .down { grid-column: 2; grid-row: 2; }
+.pad .right { grid-column: 3; grid-row: 2; } .pad .run { grid-column: 3; grid-row: 1; font: 800 11px var(--f-body); }
+
+/* ---------- seat panel ---------- */
+.seat { left: var(--gl); top: calc(var(--hdr) + 12px); bottom: var(--ftr); width: min(400px, calc(100vw - 32px)); overflow: auto; padding: 18px; display: grid; gap: 14px; align-content: start; }
+.seat-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.seat-head h2 { margin: 0; font: 900 20px var(--f-display); letter-spacing: -0.03em; }
+.seg { display: flex; gap: 4px; padding: 4px; background: var(--sunken); border-radius: 999px; }
+.seg button { flex: 1; border: 0; background: transparent; color: #6b707b; font: 700 14px var(--f-body); padding: 8px; border-radius: 999px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--black); color: #fff; }
+.seatmap { border-radius: 16px; background: var(--sunken); padding: 8px; }
+.seatmap svg { display: block; width: 100%; height: auto; max-height: 36vh; margin: 0 auto; }
+.seatmap .sec { cursor: pointer; stroke: #ffffff; stroke-width: .9; outline: none; }
+.seatmap .sec:hover, .seatmap .sec:focus-visible { filter: brightness(.9); }
+.seatmap .sec.on rect { fill: var(--seat-cur) !important; fill-opacity: 1 !important; }
+.seatmap .lbl { pointer-events: none; font: 700 5.6px var(--f-body); fill: #1d2140; }
+.seatmap .lbl.inv { fill: #ffffff; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 12px; color: var(--muted); margin-top: 10px; }
+.legend span { display: inline-flex; align-items: center; gap: 5px; }
+.legend i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+.seat-empty { margin: 0; font-size: 13.5px; color: var(--muted); line-height: 1.6; }
+.seat-sel { display: grid; gap: 12px; }
+.seat-title { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.seat-title b { font: 900 22px var(--f-display); letter-spacing: -0.03em; }
+.seat-title span { font-size: 13px; color: var(--muted); }
+.seat-title span em { font-style: normal; color: var(--fg); font-weight: 800; }
+.seat-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 0; }
+.seat-stats div { min-width: 0; background: var(--sunken); border-radius: 14px; padding: 9px 12px; }
+.seat-stats dt { font-size: 11.5px; color: var(--muted); }
+.seat-stats dd { margin: 2px 0 0; font-size: 17px; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+.seat-stats dd small { font-size: 12px; color: var(--muted); font-weight: 500; }
+.verdict { display: inline-block; font-size: 12.5px; font-weight: 800; padding: 5px 12px; border-radius: 999px; }
+.verdict.good { background: var(--blue-soft); color: var(--aurora); }
+.verdict.mid { background: #fff3e6; color: #d4660f; }
+.verdict.side { background: #ffeef0; color: #d63a4e; }
+.seat-note { margin: 0; font-size: 14px; line-height: 1.65; color: #3c414b; }
+.steppers { display: flex; gap: 8px; flex-wrap: wrap; }
+.step { display: inline-flex; align-items: center; background: var(--sunken); border-radius: 999px; overflow: hidden; }
+.step button { background: transparent; border: 0; color: var(--fg); width: 38px; height: 36px; font-size: 14px; cursor: pointer; }
+.step button:hover:not(:disabled) { background: #e7e9f0; }
+.step button:disabled { color: #c3c7cf; cursor: default; }
+.step span { min-width: 74px; text-align: center; font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.sv { display: grid; gap: 12px; }
+.sv-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.sv-head b { font: 900 20px var(--f-display); letter-spacing: -0.03em; }
+.sv-head span { font-size: 12.5px; color: var(--muted); }
+.sv-stage { text-align: center; font: 800 12.5px var(--f-body); color: #fff; background: var(--black); border-radius: 999px; padding: 8px; }
+.sv-wrap { overflow-x: auto; padding: 10px 6px 8px 0; background: var(--sunken); border-radius: 16px; }
+.sv-grid { display: grid; gap: 3px; width: max-content; min-width: 100%; }
+.sv-row { display: flex; align-items: center; gap: 6px; }
+.sv-rl { width: 30px; flex: none; font: 700 11px var(--f-body); color: var(--muted); text-align: right; }
+.sv-seats { display: flex; gap: 3px; }
+.sv-seat { width: var(--cs); height: var(--cs); border-radius: 4px; border: 0; padding: 0; background: var(--seat); cursor: pointer; }
+.sv-seat:hover { filter: brightness(1.18); }
+.sv-seat.seen { background: var(--seat-seen); }
+.sv-seat.cur { background: var(--seat-cur); outline: 2px solid var(--black); outline-offset: 1px; }
+.sv-legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 12px; color: var(--muted); }
+.sv-legend span { display: inline-flex; align-items: center; gap: 5px; }
+.sv-legend i { width: 11px; height: 11px; border-radius: 3px; display: inline-block; }
+.sv-hint { margin: 0; font-size: 12.5px; color: var(--muted); line-height: 1.7; }
+.sv-hint kbd { font: 700 11px var(--f-body); border: 1px solid var(--line); border-radius: 5px; padding: 0 5px; color: var(--fg); background: #fff; }
+.sv-tip { position: fixed; z-index: 9; pointer-events: none; background: var(--black); color: #fff; border-radius: 10px; padding: 5px 10px; font-size: 12.5px; font-weight: 700; white-space: nowrap; transform: translate(-50%, calc(-100% - 8px)); }
+.lookbox { display: grid; gap: 10px; padding: 12px; border-radius: 18px; background: var(--sunken); }
+.lookbox-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 13.5px; font-weight: 800; }
+.lookpad { display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 38px); gap: 6px; }
+.lookpad button { border: 0; background: #fff; color: var(--fg); border-radius: 12px; font: 700 13px var(--f-body); cursor: pointer; box-shadow: 0 1px 2px rgba(22,26,48,.08); }
+.lookpad button:hover { color: var(--aurora); }
+.lookpad button[aria-pressed="true"] { background: var(--aurora); color: #fff; }
+.lookpad .lu { grid-column: 2; grid-row: 1; } .lookpad .ll { grid-column: 1; grid-row: 2; } .lookpad .lc { grid-column: 2; grid-row: 2; }
+.lookpad .lr { grid-column: 3; grid-row: 2; } .lookpad .ld { grid-column: 2; grid-row: 3; }
+.quadbtn { border: 0; background: #fff; color: var(--aurora); border-radius: 999px; padding: 6px 12px; font: 800 12.5px var(--f-body); cursor: pointer; white-space: nowrap; box-shadow: 0 1px 2px rgba(22,26,48,.08); }
+.quadbtn[aria-pressed="true"] { background: var(--aurora); color: #fff; }
+.quad { position: fixed; z-index: 4; pointer-events: none; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
+.quad div { position: relative; outline: 2px solid #fff; }
+.quad span { position: absolute; left: 12px; top: 12px; font: 800 13px var(--f-body); color: #fff; background: var(--black); padding: 5px 12px; border-radius: 999px; }
+.quad span small { font-weight: 500; opacity: .75; margin-left: 4px; }
+
+@media (max-width: 1400px) { .hint { display: none; } }
+@media (max-width: 760px) {
+  :root { --hdr: calc(108px + env(safe-area-inset-top, 0px)); --ftr: calc(84px + env(safe-area-inset-bottom, 0px)); }
+  .appbar-row { gap: 12px; }
+  .wordmark { font-size: 20px; }
+  .wordmark span { font-size: 9px; }
+  .search { height: 42px; padding-left: 14px; }
+  .search input { font-size: 14px; }
+  .applinks, .map, .notice .note { display: none; }
+  .tabs button { font-size: 14px; padding: 7px 12px; }
+  .tabbar > * { height: 50px; font-size: 11.5px; }
+  .tabbar svg { width: 23px; height: 23px; }
+  .notice { left: var(--gl); transform: none; }
+  .toast { top: calc(var(--hdr) + 62px); }
+  .kpi { width: auto; max-width: 210px; padding: 12px 14px; }
+  .kpi-head h2 { font-size: 14px; white-space: nowrap; }
+  .kpi:not(.collapsed) { width: min(310px, calc(100vw - 32px)); max-width: none; top: calc(var(--hdr) + 62px); }
+  .panel { left: var(--gl); width: auto; }
+  .seat { width: auto; right: var(--gr); top: auto; max-height: 56%; }
+  .seatmap svg { max-height: 26vh; }
+}
+@media (prefers-reduced-motion: reduce) { .rec { animation: none; } }
+</style>
+
+<canvas id="scene" aria-label="인스파이어 아레나 1인칭 3D 공간"></canvas>
+
+<header class="appbar">
+  <div class="appbar-row">
+    <a class="wordmark" href="./" aria-label="공연장 선택으로 이동">INSPIRE<span>ARENA</span></a>
+    <form class="search" id="searchForm" role="search">
+      <label for="searchInput" class="sr" hidden>좌석 찾기</label>
+      <input id="searchInput" type="search" placeholder="좌석 찾기 · 예) 212 E 7, 플로어 C" autocomplete="off" enterkeyhint="search">
+      <button type="submit" aria-label="좌석 찾기"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></svg></button>
+    </form>
+    <nav class="applinks" aria-label="공연장 바꾸기">
+      <a href="./">공연장 선택</a>
+      <a href="https://claude.ai/artifact/1bBSSsjyWLAEsFeGRCsBuC" target="_blank" rel="noopener">명화라이브홀 ↗</a>
+    </nav>
+  </div>
+  <nav class="tabs views" aria-label="시점 이동">
+    <button type="button" data-view="street" aria-pressed="true">오로라 거리</button>
+    <button type="button" data-view="rotunda" aria-pressed="false">로툰다</button>
+    <button type="button" data-view="lobby" aria-pressed="false">아레나 로비</button>
+    <span class="sep" aria-hidden="true"></span>
+    <span class="grp">객석</span>
+    <button type="button" data-view="front" aria-pressed="false">플로어 앞열</button>
+    <button type="button" data-view="mid" aria-pressed="false">플로어 중앙</button>
+    <button type="button" data-view="l1" aria-pressed="false">1층</button>
+    <button type="button" data-view="l2" aria-pressed="false">2층 사이드</button>
+    <button type="button" data-view="l3" aria-pressed="false">3층 정면</button>
+  </nav>
+</header>
+
+<div class="hud notice" aria-live="polite"><span class="tag">위치</span><b id="whereNow">오로라 거리</b><span class="note">비공식 학생 컨셉 · 인스파이어와 무관 · 공연·가격은 예시</span></div>
+
+<section class="hud kpi glass" id="kpi" aria-label="방문자 행동 지표">
+  <div class="kpi-head">
+    <h2><span class="rec" aria-hidden="true"></span>방문자 행동 지표</h2>
+    <button class="chip-btn" id="kpiToggle" type="button" aria-expanded="true">접기</button>
+  </div>
+  <div class="mini" id="kpiMini">여정 1/4 · 전환 0</div>
+  <div class="kpi-body">
+    <ol class="journey" id="journey" aria-label="고객 여정">
+      <li data-z="street"><b>오로라 거리</b><span>0s</span></li>
+      <li data-z="rotunda"><b>로툰다</b><span>0s</span></li>
+      <li data-z="lobby"><b>로비</b><span>0s</span></li>
+      <li data-z="arena"><b>객석</b><span>0s</span></li>
+    </ol>
+    <div class="journey-cap"><span>고객 여정 · 구역별 체류</span><span id="jStep">1 / 4 단계</span></div>
+    <dl class="kgrid">
+      <div><dt>총 체류시간</dt><dd id="kDwell">00:00</dd></div>
+      <div><dt>이동거리</dt><dd><span id="kDist">0</span> <small>m</small></dd></div>
+      <div><dt>부스 방문</dt><dd><span id="kVisit">0</span><small> / 5</small></dd><div class="meter"><i id="kVisitBar"></i></div></div>
+      <div><dt>인터랙션</dt><dd id="kInter">0</dd></div>
+      <div class="wide"><dt>좌석 시야 확인</dt><dd><span id="kSeat">0</span><small> 석 · 마지막 </small><small id="kSeatLast">—</small></dd></div>
+      <div class="cv"><dt>전환 (예매·구매·신청)</dt><dd id="kConv">0</dd></div>
+      <div class="cv"><dt>방문 대비 전환율</dt><dd><span id="kRate">0</span><small> %</small></dd></div>
+    </dl>
+    <div class="log-title">이벤트 로그</div>
+    <ul class="log" id="log"><li class="empty">로툰다를 지나 아레나까지 걸어가 보세요.</li></ul>
+  </div>
+</section>
+
+<div class="hud cross" id="cross" aria-hidden="true"></div>
+<div class="quad" id="quad" hidden aria-hidden="true">
+  <div><span>좌측<small>60°</small></span></div>
+  <div><span>우측<small>60°</small></span></div>
+  <div><span>상단<small>위로 40°</small></span></div>
+  <div><span>하단<small>아래로 40°</small></span></div>
+</div>
+<div class="hud prompt" id="prompt" hidden><button type="button" id="promptBtn"><kbd>E</kbd><span id="promptText">부스 보기</span></button></div>
+<div class="hud toast glass" id="toast" hidden></div>
+
+<div class="hud map glass" id="map" aria-hidden="true">
+  <canvas id="mapCanvas" width="440" height="196"></canvas>
+  <div class="cap"><span>무대</span><span>아레나 · 로비 · 로툰다 · 오로라 거리</span></div>
+</div>
+
+<section class="hud panel glass" id="panel" hidden aria-live="polite">
+  <button class="chip-btn close" type="button" id="panelClose">닫기</button>
+  <div class="kind" id="pKind"></div>
+  <h3 id="pTitle"></h3>
+  <p id="pDesc"></p>
+  <ul class="items" id="pItems"></ul>
+  <p class="fine" id="pFine"></p>
+  <button class="cta" type="button" id="pCta"></button>
+  <div class="done-msg" id="pDone" hidden></div>
+</section>
+
+<section class="hud seat glass" id="seat" hidden aria-label="좌석 시야 확인">
+  <div class="seat-head">
+    <h2>좌석 시야 확인</h2>
+    <button class="chip-btn" type="button" id="seatClose">닫기</button>
+  </div>
+  <div class="seg" role="group" aria-label="보기 전환">
+    <button type="button" id="tabMap" aria-pressed="true">구역도</button>
+    <button type="button" id="tabSeats" aria-pressed="false">좌석표</button>
+  </div>
+  <div id="mapView">
+  <div class="seatmap" id="seatmap"></div>
+  <div class="legend" id="legend"></div>
+  </div>
+  <div class="sv" id="seatsView" hidden>
+    <div class="sv-head"><b id="svTitle">구역을 먼저 고르세요</b><span id="svGrade"></span></div>
+    <div class="sv-stage" id="svStage">▲ 무대 방향</div>
+    <div class="sv-wrap" id="svWrap"><div class="sv-grid" id="svGrid"></div></div>
+    <div class="sv-legend"><span><i style="background:var(--seat)"></i>좌석</span><span><i style="background:var(--seat-seen)"></i>시야 확인함</span><span><i style="background:var(--seat-cur)"></i>지금 앉은 자리</span></div>
+    <p class="sv-hint">자리를 누르면 그 좌석에 앉아요. 앉은 뒤엔 <kbd>W</kbd><kbd>S</kbd> 앞뒤 열, <kbd>A</kbd><kbd>D</kbd> 옆자리, <kbd>Esc</kbd> 일어나기. 3D 화면의 의자를 직접 눌러도 앉을 수 있어요.</p>
+  </div>
+  <div class="sv-tip" id="svTip" hidden></div>
+  <p class="seat-empty" id="seatEmpty">K팝 콘서트 엔드 스테이지 기준 배치예요. 구역을 누르면 그 좌석에 앉은 눈높이로 이동하고, 열(A열부터)과 좌석 번호를 바꿔 가며 시야를 비교할 수 있어요. 점선 구역은 무대 옆 시야제한석이에요.</p>
+  <div class="seat-sel" id="seatSel" hidden>
+    <div class="seat-title"><b id="sId">—</b><span id="sGrade">—</span></div>
+    <dl class="seat-stats">
+      <div><dt>메인무대 앞까지</dt><dd><span id="sDist">0</span> <small>m</small></dd></div>
+      <div><dt>센터 스테이지까지</dt><dd><span id="sHouse">0</span> <small>m</small></dd></div>
+      <div><dt>눈높이 (플로어 기준)</dt><dd><span id="sEye">0</span> <small>m</small></dd></div>
+      <div><dt>무대 내려다보는 각도</dt><dd><span id="sDown">0</span><small>°</small></dd></div>
+      <div><dt>무대 정면 기준 각도</dt><dd><span id="sAng">0</span><small>°</small></dd></div>
+      <div><dt>메인 스크린 크기 (시야각)</dt><dd><span id="sScr">0</span><small>°</small></dd></div>
+    </dl>
+    <div><span class="verdict" id="sVerdict">—</span></div>
+    <p class="seat-note" id="sNote"></p>
+    <div class="steppers">
+      <div class="step" id="rowStep"><button type="button" id="rowPrev" aria-label="앞 열">−</button><span id="rowLbl">1열</span><button type="button" id="rowNext" aria-label="뒤 열">+</button></div>
+      <div class="step" id="numStep"><button type="button" id="numPrev" aria-label="이전 좌석">◀</button><span id="numLbl">1번</span><button type="button" id="numNext" aria-label="다음 좌석">▶</button></div>
+    </div>
+    <div class="lookbox">
+      <div class="lookbox-head"><span>이 자리에서 둘러보기</span><button class="quadbtn" type="button" id="quadBtn" aria-pressed="false">4분할 보기</button></div>
+      <div class="lookpad" role="group" aria-label="시야 방향">
+        <button type="button" class="lu" data-look="up" aria-pressed="false">▲ 상단</button>
+        <button type="button" class="ll" data-look="left" aria-pressed="false">◀ 좌측</button>
+        <button type="button" class="lc" data-look="front" aria-pressed="true">● 무대</button>
+        <button type="button" class="lr" data-look="right" aria-pressed="false">우측 ▶</button>
+        <button type="button" class="ld" data-look="down" aria-pressed="false">▼ 하단</button>
+      </div>
+    </div>
+    <button class="cta" type="button" id="sCta">이 좌석 예매하기 (데모)</button>
+  </div>
+</section>
+
+<div class="hud pad" id="pad" hidden>
+  <button class="up" type="button" data-dir="up" aria-label="앞으로">▲</button>
+  <button class="run" type="button" data-dir="run" aria-label="달리기">RUN</button>
+  <button class="left" type="button" data-dir="left" aria-label="왼쪽">◀</button>
+  <button class="down" type="button" data-dir="down" aria-label="뒤로">▼</button>
+  <button class="right" type="button" data-dir="right" aria-label="오른쪽">▶</button>
+</div>
+
+<nav class="hud tabbar" aria-label="메뉴">
+  <button type="button" id="seatBtn" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 11V6a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v5"/><path d="M4 11h16v4H4z"/><path d="M6 15v5M18 15v5"/></svg><span>좌석표</span></button>
+  <button type="button" id="mapBtn" aria-pressed="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6.5 9 4l6 2.5L21 4v13.5L15 20l-6-2.5L3 20z"/><path d="M9 4v13.5M15 6.5V20"/></svg><span>지도</span></button>
+  <button type="button" id="showBtn" class="home" aria-pressed="true"><svg class="fillable" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5 14.4 9l5.6.5-4.3 3.8 1.3 5.7L12 16l-5 3 1.3-5.7L4 9.5 9.6 9z"/></svg><span id="showLbl">공연 ON</span></button>
+  <button type="button" id="kpiBtn" aria-pressed="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span>지표</span></button>
+  <a id="hubBtn" href="./"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="7" height="7" rx="2"/><rect x="13" y="4" width="7" height="7" rx="2"/><rect x="4" y="13" width="7" height="7" rx="2"/><rect x="13" y="13" width="7" height="7" rx="2"/></svg><span>공연장</span></a>
+</nav>
+<div class="hud hint"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> 이동 · <kbd>Shift</kbd> 달리기 · <kbd>E</kbd> 부스<br>좌석에선 <kbd>W</kbd><kbd>S</kbd> 앞뒤 열 · <kbd>A</kbd><kbd>D</kbd> 옆자리 · 의자 클릭으로 착석</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(() => {
+  if (typeof THREE === 'undefined') {
+    const n = document.getElementById('whereNow');
+    if (n) n.textContent = '3D 엔진을 불러오지 못했어요. 새로고침해 주세요';
+    return;
+  }
+  const $ = s => document.querySelector(s);
+  const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const coarse = matchMedia('(pointer: coarse)').matches;
+  const canvas = $('#scene');
+  const FD = '"Orbit","Noto Sans KR",sans-serif';
+  const FB = '"Noto Sans KR","Apple SD Gothic Neo",sans-serif';
+
+  /* ---------- renderer ---------- */
+  const DPR = window.devicePixelRatio || 1;
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: DPR < 1.5, powerPreference: 'high-performance' });
+  renderer.setPixelRatio(Math.min(DPR, coarse ? 1.25 : 1.5));
+  renderer.outputEncoding = THREE.sRGBEncoding;
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x03060b);
+  scene.fog = new THREE.Fog(0x04070d, 45, 115);
+  const camera = new THREE.PerspectiveCamera(70, 1, 0.1, 260);
+  camera.rotation.order = 'YXZ';
+  function resize() {
+    const cw = canvas.clientWidth || innerWidth, ch = canvas.clientHeight || innerHeight;
+    renderer.setSize(cw, ch, false);
+    camera.aspect = cw / ch;
+    camera.fov = camera.aspect < 0.8 ? 82 : 70;
+    camera.updateProjectionMatrix();
+  }
+  addEventListener('resize', resize); resize();
+
+  /* ---------- helpers ---------- */
+  const L = (c, o = {}) => new THREE.MeshLambertMaterial(Object.assign({ color: c }, o));
+  const Bm = (c, o = {}) => new THREE.MeshBasicMaterial(Object.assign({ color: c }, o));
+  const UNIT = new THREE.BoxGeometry(1, 1, 1);
+  const dummy = new THREE.Object3D();
+  function slab(mat, x1, x2, y1, y2, z1, z2, parent = scene) {
+    const m = new THREE.Mesh(UNIT, mat);
+    m.scale.set(x2 - x1, y2 - y1, z2 - z1);
+    m.position.set((x1 + x2) / 2, (y1 + y2) / 2, (z1 + z2) / 2);
+    parent.add(m); return m;
+  }
+  function instBoxes(mat, list, colors) {
+    const m = new THREE.InstancedMesh(UNIT, mat, list.length);
+    const c = new THREE.Color();
+    list.forEach((b, i) => {
+      dummy.position.set((b[0] + b[1]) / 2, (b[2] + b[3]) / 2, (b[4] + b[5]) / 2);
+      dummy.scale.set(b[1] - b[0], b[3] - b[2], b[5] - b[4]);
+      dummy.rotation.set(0, 0, 0); dummy.updateMatrix(); m.setMatrixAt(i, dummy.matrix);
+      if (colors) m.setColorAt(i, c.setHex(colors[i]));
+    });
+    m.frustumCulled = false; scene.add(m); return m;
+  }
+  function instGeo(geo, mat, pts, colors) {
+    const m = new THREE.InstancedMesh(geo, mat, pts.length);
+    const c = new THREE.Color();
+    pts.forEach((p, i) => {
+      dummy.position.set(p[0], p[1], p[2]); dummy.rotation.set(0, 0, 0); dummy.scale.set(1, 1, 1);
+      dummy.updateMatrix(); m.setMatrixAt(i, dummy.matrix);
+      if (colors) m.setColorAt(i, c.setHex(colors[i]));
+    });
+    m.frustumCulled = false; scene.add(m); return m;
+  }
+  function plane(w, h, mat, x, y, z, ry = 0, parent = scene) {
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), mat);
+    m.position.set(x, y, z); m.rotation.y = ry; parent.add(m); return m;
+  }
+  let seed = 23; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  const redraws = [];
+  function sign(w, h, draw) {
+    const c = document.createElement('canvas'); c.width = w; c.height = h;
+    const ctx = c.getContext('2d');
+    const tex = new THREE.CanvasTexture(c); tex.encoding = THREE.sRGBEncoding; tex.anisotropy = 4;
+    const run = () => { ctx.clearRect(0, 0, w, h); draw(ctx, w, h); tex.needsUpdate = true; };
+    run(); redraws.push(run); return tex;
+  }
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => redraws.forEach(f => f()));
+  const texMat = tex => Bm(0xffffff, { map: tex });
+
+  /* ---------- walkable height grid ---------- */
+  const GX0 = -42, GZ0 = -46, GS = 0.5, GNX = 168, GNZ = 368;
+  const H = new Float32Array(GNX * GNZ).fill(NaN);
+  function hAt(x, z) {
+    const i = Math.floor((x - GX0) / GS), j = Math.floor((z - GZ0) / GS);
+    if (i < 0 || j < 0 || i >= GNX || j >= GNZ) return NaN;
+    return H[j * GNX + i];
+  }
+  function fill(x1, x2, z1, z2, v) {
+    for (let j = 0; j < GNZ; j++) {
+      const cz = GZ0 + (j + 0.5) * GS; if (cz < z1 || cz > z2) continue;
+      for (let i = 0; i < GNX; i++) {
+        const cx = GX0 + (i + 0.5) * GS; if (cx < x1 || cx > x2) continue;
+        H[j * GNX + i] = typeof v === 'function' ? v(cx, cz) : v;
+      }
+    }
+  }
+  const fillCircle = (x0, z0, r, v) => fill(x0 - r, x0 + r, z0 - r, z0 + r, (x, z) => Math.hypot(x - x0, z - z0) <= r ? v : hAt(x, z));
+
+  // End-stage K-pop layout: main stage at -z, T runway to a house-shaped centre stage, two corner sub-stages.
+  // Flat floor (lettered standing zones) wrapped on three sides by stands: 1층 (retractable lower tier), 2층, 3층.
+  // Rows are lettered from A at the front; row depth 84cm, riser steps within the arena's 25–48cm range.
+  const FX = 15, FZ0 = -30, FZ1 = 2.3, BZ0 = -40;
+  const ROW = 0.84, R1 = 10, R2 = 9, R3 = 8;
+  const C1 = R1 * ROW, C1E = C1 + 1.2, L2E = C1E + R2 * ROW, C2E = L2E + 1.2, L3E = C2E + R3 * ROW;
+  const H_C1 = 5.6, H_C2 = 12.2;
+  const l1Top = r => 0.4 + r * 0.32;
+  const l2Top = r => H_C1 + (r + 1) * 0.45;
+  const l3Top = r => H_C2 + (r + 1) * 0.48;
+  const OX = FX + L3E, OZ = FZ1 + L3E;           // outer edge of the bowl
+  const AISLE_Z = [-32, -24, -16, -8, 0], AISLE_X = 8, AW = 0.65;
+  const isSide = (ax, z) => ax - FX >= z - FZ1;
+  function inAisle(x, z) {
+    const ax = Math.abs(x);
+    if (z < FZ1 && ax > FX) return AISLE_Z.some(c => Math.abs(z - c) < AW);
+    if (z >= FZ1 && ax < FX) return Math.abs(ax - AISLE_X) < AW;
+    return false;
+  }
+  const aisleH = d => d < C1E ? d / C1E * H_C1 : H_C1 + (d - C1E) / (C2E - C1E) * (H_C2 - H_C1);
+  const inHouse = (x, z) => (z >= -17 && z <= -12 && Math.abs(x) <= 3.6) || (z > -12 && z <= -9.5 && Math.abs(x) <= 3.6 * (-9.5 - z) / 2.5);
+  function bowlH(x, z) {
+    const ax = Math.abs(x);
+    if (z < BZ0) return NaN;
+    if (ax < FX && z < FZ1) return z < FZ0 ? NaN : 0;
+    const d = Math.max(ax - FX, z - FZ1);
+    if (d < C2E && inAisle(x, z)) return aisleH(d);
+    if (d < C1) return l1Top(Math.floor(d / ROW));
+    if (d < C1E) return H_C1;
+    if (d < L2E) return l2Top(Math.floor((d - C1E) / ROW));
+    if (d < C2E) return H_C2;
+    if (d < L3E) return l3Top(Math.floor((d - C2E) / ROW));
+    return NaN;
+  }
+  fill(-OX, OX, BZ0, 27.5, bowlH);
+  fill(-1.9, 1.9, FZ0, -16.6, NaN);                       // runway
+  fill(-4, 4, -17.4, -9, (x, z) => inHouse(x, z) || (Math.abs(x) < 4 && z < -16.6 && z > -17.4) ? NaN : hAt(x, z)); // house stage
+  [-1, 1].forEach(s => fill(s * 12 - 1.9, s * 12 + 1.9, FZ0, -25.6, NaN)); // corner sub-stages
+  fill(-3.2, 3.2, FZ1, 27.5, NaN);                         // tunnel walls + camera platform
+  fill(-2.4, 2.4, FZ1, 28.6, 0);                           // floor tunnel (Gate 1)
+  fill(-20, 20, 28, 46, 0);                                // arena lobby
+  fill(-4.8, 4.8, 45, 48.5, 0);                            // lobby → rotunda
+  fillCircle(0, 60, 13.3, 0);                              // rotunda
+  fill(-5.8, 5.8, 71, 76, 0);                              // rotunda → street
+  fill(-6.8, 6.8, 74, 135.6, 0);                           // Aurora street
+
+  /* ---------- lights ---------- */
+  const amb = new THREE.AmbientLight(0x5a6c88, 0.55); scene.add(amb);
+  scene.add(new THREE.HemisphereLight(0x7f90c0, 0x0b0f16, 0.45));
+  const dir = new THREE.DirectionalLight(0xc8d8ff, 0.35); dir.position.set(10, 30, 20); scene.add(dir);
+  const stageL = new THREE.PointLight(0x6ff2cf, 1.3, 80); stageL.position.set(-9, 12, -27); scene.add(stageL);
+  const stageR = new THREE.PointLight(0xc08cff, 1.3, 80); stageR.position.set(9, 12, -27); scene.add(stageR);
+
+  /* =========================================================
+     ARENA
+     ========================================================= */
+  const AW_X = OX + 0.6, AZ0 = -41.5;                    // building shell
+  slab(L(0x0b131b), -AW_X, AW_X, -0.2, 0, AZ0, 28);
+
+  // main stage, T runway, house-shaped centre stage, corner sub-stages
+  const stageMat = L(0x111b25);
+  const edgeMat = Bm(0x6ff2cf);
+  slab(stageMat, -13, 13, 0, 1.8, -40.2, FZ0);
+  slab(edgeMat, -13, 13, 1.76, 1.84, FZ0 - 0.06, FZ0 + 0.04);
+  slab(stageMat, -1.5, 1.5, 0, 1.4, FZ0, -17);
+  slab(edgeMat, 1.48, 1.56, 1.36, 1.44, FZ0, -17);
+  slab(edgeMat, -1.56, -1.48, 1.36, 1.44, FZ0, -17);
+  const houseShape = new THREE.Shape();
+  houseShape.moveTo(-3.5, 17); houseShape.lineTo(3.5, 17); houseShape.lineTo(3.5, 12); houseShape.lineTo(0, 9.5); houseShape.lineTo(-3.5, 12); houseShape.closePath();
+  const houseGeo = new THREE.ExtrudeGeometry(houseShape, { depth: 1.4, bevelEnabled: false });
+  const house = new THREE.Mesh(houseGeo, stageMat); house.rotation.x = -Math.PI / 2; scene.add(house);
+  const houseEdge = new THREE.LineSegments(new THREE.EdgesGeometry(houseGeo), new THREE.LineBasicMaterial({ color: 0x6ff2cf }));
+  houseEdge.rotation.x = -Math.PI / 2; scene.add(houseEdge);
+  [-1, 1].forEach(s => {
+    slab(stageMat, s * 12 - 1.5, s * 12 + 1.5, 0, 1.4, FZ0, -27);
+    slab(edgeMat, s * 12 - 1.5, s * 12 + 1.5, 1.36, 1.44, -27.04, -26.96);
+  });
+  // barricades
+  const barMat = L(0x2a3946);
+  slab(barMat, -FX, -13.9, 0, 1.1, -26.75, -26.55);
+  slab(barMat, -10.1, -2, 0, 1.1, -29.35, -29.15);
+  slab(barMat, 2, 10.1, 0, 1.1, -29.35, -29.15);
+  slab(barMat, 13.9, FX, 0, 1.1, -26.75, -26.55);
+  slab(barMat, -2.1, -1.9, 0, 1.1, -29.2, -17.4);
+  slab(barMat, 1.9, 2.1, 0, 1.1, -29.2, -17.4);
+
+  // LED screens (main wall + two IMAG)
+  const scrC = document.createElement('canvas'); scrC.width = 1024; scrC.height = 512;
+  const scrX = scrC.getContext('2d');
+  const scrTex = new THREE.CanvasTexture(scrC); scrTex.encoding = THREE.sRGBEncoding;
+  const scrMat = texMat(scrTex);
+  slab(L(0x090e14), -14.5, 14.5, 1.8, 15, -40.9, -40.3);
+  plane(27, 12.4, scrMat, 0, 8.6, -40.25);
+  [-1, 1].forEach(s => {
+    const f = slab(L(0x090e14), -4.4, 4.4, -2.7, 2.7, -0.25, 0.05);
+    f.position.set(s * 19.5, 13.5, -34.4); f.rotation.y = -s * 0.35;
+    const p = plane(8.4, 4.8, scrMat, s * 19.5 + Math.sin(-s * 0.35) * 0.12, 13.5, -34.4 + Math.cos(-s * 0.35) * 0.12, -s * 0.35);
+    p.renderOrder = 1;
+  });
+  // hung speaker arrays
+  [-1, 1].forEach(s => { for (let k = 0; k < 8; k++) slab(L(0x0d1217), s * 14.6 - 0.7, s * 14.6 + 0.7, 16.5 - k * 0.85, 17.2 - k * 0.85, -29.8 - k * 0.04, -28.6 - k * 0.04); });
+
+  function drawScreen(t, live) {
+    const w = 1024, h = 512, c = scrX;
+    if (!live) {
+      c.fillStyle = '#071019'; c.fillRect(0, 0, w, h);
+      c.fillStyle = '#6ff2cf'; c.textAlign = 'center';
+      c.font = `64px ${FD}`; c.fillText('NEON TIDE', w / 2, h / 2 - 6);
+      c.fillStyle = 'rgba(234,246,243,.75)'; c.font = `500 26px ${FB}`;
+      c.fillText('곧 공연이 시작됩니다 · 가상 공연', w / 2, h / 2 + 46);
+      scrTex.needsUpdate = true; return;
+    }
+    const hue = (t * 14) % 360;
+    const g = c.createLinearGradient(0, 0, w, h);
+    g.addColorStop(0, `hsl(${hue},65%,10%)`); g.addColorStop(1, `hsl(${(hue + 90) % 360},70%,20%)`);
+    c.fillStyle = g; c.fillRect(0, 0, w, h);
+    c.lineWidth = 6;
+    for (let i = 0; i < 7; i++) {
+      const r = (t * 95 + i * 82) % 580;
+      c.strokeStyle = `hsla(${(hue + i * 24) % 360},90%,66%,${(1 - r / 580).toFixed(3)})`;
+      c.beginPath(); c.arc(w / 2, h / 2, r, 0, Math.PI * 2); c.stroke();
+    }
+    for (let i = 0; i < 32; i++) {
+      const v = (Math.sin(t * 3 + i * 0.7) * 0.5 + 0.5) * (Math.sin(t * 1.3 + i * 0.21) * 0.5 + 0.5);
+      const bh = 30 + v * 150;
+      c.fillStyle = `hsla(${(hue + i * 4) % 360},90%,70%,.5)`; c.fillRect(i * 32 + 6, h - bh, 20, bh);
+    }
+    c.textAlign = 'center'; c.fillStyle = '#fff';
+    c.font = `92px ${FD}`; c.fillText('NEON TIDE', w / 2, h / 2 + 18);
+    c.fillStyle = 'rgba(255,255,255,.8)'; c.font = `500 26px ${FB}`;
+    c.fillText('LIVE · 가상 공연 연출', w / 2, h / 2 + 68);
+    scrTex.needsUpdate = true;
+  }
+
+  // bowl risers, seats, seated audience — cut at the aisles so the stairs read clearly
+  const risers = [], riserCol = [];
+  const seatPts = [], seatCol = [], headPts = [], headCol = [], seatHead = [];
+  const stickPos = [], stickPhase = [];
+  const skin = [0x1a1714, 0x221d19, 0x15130f, 0x1d1a1c];
+  const STICK_ORIGIN = -33;
+  function cut(a, b, holes) {
+    const out = []; let st = a;
+    holes.filter(c => c + AW > a && c - AW < b).sort((p, q) => p - q).forEach(c => { if (c - AW > st) out.push([st, c - AW]); st = Math.max(st, c + AW); });
+    if (b > st) out.push([st, b]);
+    return out;
+  }
+  function addSlice(d0, d1, top, col) {
+    const xo = FX + d0, xi = FX + d1, zo = FZ1 + d0, zi = FZ1 + d1;
+    for (const s of [-1, 1]) {
+      cut(BZ0, zi, AISLE_Z).forEach(([a, b]) => { risers.push(s > 0 ? [xo, xi, 0, top, a, b] : [-xi, -xo, 0, top, a, b]); riserCol.push(col); });
+      cut(3.2, xo, [AISLE_X]).forEach(([a, b]) => { risers.push(s > 0 ? [a, b, 0, top, zo, zi] : [-b, -a, 0, top, zo, zi]); riserCol.push(col); });
+    }
+  }
+  function addSeat(x, top, z, occ) {
+    seatPts.push([x, top + 0.21, z]);
+    seatCol.push(occ ? 0x0f1b22 : 0x23505a);
+    seatHead.push(occ ? headPts.length : -1);
+    if (occ) {
+      headPts.push([x, top + 0.98, z]); headCol.push(skin[(rnd() * 4) | 0]);
+      stickPos.push(x + (rnd() - 0.5) * 0.25, top + 1.45 + rnd() * 0.15, z);
+      stickPhase.push(Math.atan2(x, z - STICK_ORIGIN));
+    }
+  }
+  // seat grid shared by the 3D seats and the seat-view panel
+  const sideSeatZ = d0 => { const out = []; for (let z = BZ0 + 0.4; z < FZ1 + d0 - 0.25; z += 0.56) out.push(z); return out; };
+  const backSeatX = d0 => { const out = []; for (let x = -(FX + d0) + 0.3; x < FX + d0 - 0.25; x += 0.56) if (Math.abs(x) > 3.5) out.push(x); return out; };
+  function seatRowAt(d0, top, occRate) {
+    const dm = d0 + ROW / 2;
+    for (const s of [-1, 1]) sideSeatZ(d0).forEach(z => { const x = s * (FX + dm); if (!inAisle(x, z)) addSeat(x, top, z, rnd() < occRate); });
+    backSeatX(d0).forEach(x => { if (!inAisle(x, FZ1 + dm)) addSeat(x, top, FZ1 + dm, rnd() < occRate); });
+  }
+  const CONC = 0x223544;
+  for (let r = 0; r < R1; r++) { addSlice(r * ROW, (r + 1) * ROW, l1Top(r), r % 2 ? 0x15212b : 0x172430); seatRowAt(r * ROW, l1Top(r), 0.84); }
+  addSlice(C1, C1E, H_C1, CONC);
+  for (let r = 0; r < R2; r++) { const d0 = C1E + r * ROW; addSlice(d0, d0 + ROW, l2Top(r), r % 2 ? 0x14202a : 0x16232e); seatRowAt(d0, l2Top(r), 0.74); }
+  addSlice(L2E, C2E, H_C2, CONC);
+  for (let r = 0; r < R3; r++) { const d0 = C2E + r * ROW; addSlice(d0, d0 + ROW, l3Top(r), r % 2 ? 0x131d27 : 0x15202b); seatRowAt(d0, l3Top(r), 0.64); }
+  instBoxes(L(0xffffff), risers, riserCol);
+  const seatMesh = instGeo(new THREE.BoxGeometry(0.48, 0.42, 0.46), L(0xffffff), seatPts, seatCol);
+
+  // aisle stairs with guide lights, floor → 2층 → 3층
+  const steps = [], guides = [];
+  for (let d = 0; d < C2E - 0.01; d += 0.5) {
+    const h = aisleH(d + 0.25);
+    for (const s of [-1, 1]) {
+      AISLE_Z.forEach(zc => {
+        const x0 = FX + d, x1 = x0 + 0.5;
+        steps.push(s > 0 ? [x0, x1, 0, h, zc - AW, zc + AW] : [-x1, -x0, 0, h, zc - AW, zc + AW]);
+        guides.push([s * (x0 + 0.25), h + 0.03, zc - AW + 0.08], [s * (x0 + 0.25), h + 0.03, zc + AW - 0.08]);
+      });
+      const z0 = FZ1 + d;
+      steps.push(s > 0 ? [AISLE_X - AW, AISLE_X + AW, 0, h, z0, z0 + 0.5] : [-AISLE_X - AW, -AISLE_X + AW, 0, h, z0, z0 + 0.5]);
+      guides.push([s * (AISLE_X - AW + 0.08), h + 0.03, z0 + 0.25], [s * (AISLE_X + AW - 0.08), h + 0.03, z0 + 0.25]);
+    }
+  }
+  instBoxes(L(0x2b3e4c), steps);
+  instGeo(new THREE.BoxGeometry(0.1, 0.05, 0.1), Bm(0x6ff2cf), guides);
+
+  // glass safety railings along the front edge of 2층 and 3층
+  const glassMat = Bm(0x9feee0, { transparent: true, opacity: 0.16, side: THREE.DoubleSide, depthWrite: false });
+  const railTop = Bm(0x9feee0);
+  function glassRail(d, y) {
+    for (const s of [-1, 1]) {
+      cut(BZ0, FZ1 + d, AISLE_Z).forEach(([a, b]) => {
+        plane(b - a, 1.05, glassMat, s * (FX + d), y + 0.525, (a + b) / 2, Math.PI / 2);
+        slab(railTop, s * (FX + d) - 0.03, s * (FX + d) + 0.03, y + 1.03, y + 1.08, a, b);
+      });
+      cut(3.2, FX + d, [AISLE_X]).forEach(([a, b]) => {
+        plane(b - a, 1.05, glassMat, s * (a + b) / 2, y + 0.525, FZ1 + d, 0);
+        slab(railTop, s > 0 ? a : -b, s > 0 ? b : -a, y + 1.03, y + 1.08, FZ1 + d - 0.03, FZ1 + d + 0.03);
+      });
+    }
+  }
+  glassRail(C1, H_C1);
+  glassRail(L2E, H_C2);
+
+  // sections: 15 per tier (x01–x15, centre-facing x08) + lettered floor zones
+  const ROW_LETTERS = 'ABCDEFGHIJKLMNOP';
+  const LEVELS = [
+    { n: 1, da: 0, db: C1, rows: R1, top: l1Top, grade: '1층 R석', price: '154,000원', col: '#7d89ff' },
+    { n: 2, da: C1E, db: L2E, rows: R2, top: l2Top, grade: '2층 S석', price: '132,000원', col: '#a9b2ff' },
+    { n: 3, da: C2E, db: L3E, rows: R3, top: l3Top, grade: '3층 A석', price: '110,000원', col: '#cfc6ff' },
+  ];
+  const FLOOR_COL = '#ffcf8c';
+  const SECTIONS = [];
+  const SIDE_Z = [[BZ0, -32 - AW], [-32 + AW, -24 - AW], [-24 + AW, -16 - AW], [-16 + AW, -8 - AW], [-8 + AW, 0 - AW], [0 + AW, null]];
+  LEVELS.forEach(Lv => {
+    const segs = [];
+    SIDE_Z.forEach(([a, b], i) => segs.push({ kind: 'side', s: -1, a, b: b === null ? FZ1 + Lv.db : b, restricted: i === 0 }));
+    segs.push({ kind: 'back', s: -1, a: AISLE_X + AW, b: FX + Lv.da });
+    segs.push({ kind: 'center', a: 3.2, b: AISLE_X - AW });
+    segs.push({ kind: 'back', s: 1, a: AISLE_X + AW, b: FX + Lv.da });
+    SIDE_Z.slice().reverse().forEach(([a, b], i) => segs.push({ kind: 'side', s: 1, a, b: b === null ? FZ1 + Lv.db : b, restricted: i === SIDE_Z.length - 1 }));
+    segs.forEach((g, i) => SECTIONS.push(Object.assign(g, { id: String(Lv.n * 100 + i + 1), Lv })));
+  });
+  // floor: front row F G | H I (split by the runway), middle A–E, rear J–N
+  [
+    ['F', -FX, -7.5, FZ0, -19, [-11, -21]], ['G', -7.5, -1.9, FZ0, -19, [-4.7, -22]],
+    ['H', 1.9, 7.5, FZ0, -19, [4.7, -22]], ['I', 7.5, FX, FZ0, -19, [11, -21]],
+    ['A', -FX, -9, -19, -7, [-12, -13]], ['B', -9, -3.8, -19, -7, [-6.4, -13]], ['C', -3.8, 3.8, -19, -7, [0, -7.8]],
+    ['D', 3.8, 9, -19, -7, [6.4, -13]], ['E', 9, FX, -19, -7, [12, -13]],
+    ['J', -FX, -9, -7, FZ1, [-12, -2.4]], ['K', -9, -3, -7, FZ1, [-6, -2.4]], ['L', -3, 3, -7, FZ1, [0, -2.4]],
+    ['M', 3, 9, -7, FZ1, [6, -2.4]], ['N', 9, FX, -7, FZ1, [12, -2.4]],
+  ].forEach(([id, x1, x2, z1, z2, spot]) => SECTIONS.push({ kind: 'floor', id, x1, x2, z1, z2, spot }));
+
+  SECTIONS.forEach(sec => {
+    if (sec.kind === 'floor') return;
+    const Lv = sec.Lv, col = Lv.col;
+    const tex = sign(160, 72, (c, w, h) => {
+      c.fillStyle = '#05121a'; c.fillRect(0, 0, w, h);
+      c.fillStyle = col; c.fillRect(0, 0, w, 6);
+      c.fillStyle = '#eaf6f3'; c.font = `44px ${FD}`; c.textAlign = 'center'; c.fillText(sec.id, w / 2, 56);
+    });
+    const y = Lv.n === 1 ? 1.0 : (Lv.n === 2 ? H_C1 : H_C2) + 0.55;
+    const mat = texMat(tex);
+    if (sec.kind === 'side') plane(1.4, 0.63, mat, sec.s * (FX + Lv.da - 0.08), y, (sec.a + Math.min(sec.b, FZ1)) / 2, sec.s > 0 ? -Math.PI / 2 : Math.PI / 2);
+    else if (sec.kind === 'back') plane(1.4, 0.63, mat, sec.s * (sec.a + sec.b) / 2, y, FZ1 + Lv.da - 0.08, Math.PI);
+    else [-1, 1].forEach(s => plane(1.4, 0.63, mat, s * (sec.a + sec.b) / 2, y, FZ1 + Lv.da - 0.08, Math.PI));
+  });
+  // floor zone letters painted on the floor
+  SECTIONS.filter(s => s.kind === 'floor').forEach(sec => {
+    const tex = sign(128, 128, (c, w, h) => {
+      c.strokeStyle = 'rgba(255,207,122,.55)'; c.lineWidth = 6; c.strokeRect(8, 8, w - 16, h - 16);
+      c.fillStyle = 'rgba(255,207,122,.75)'; c.font = `76px ${FD}`; c.textAlign = 'center'; c.fillText(sec.id, w / 2, 92);
+    });
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(1.6, 1.6), Bm(0xffffff, { map: tex, transparent: true, depthWrite: false }));
+    m.rotation.x = -Math.PI / 2; m.position.set(sec.x1 + 1.1, 0.02, sec.z2 - 1.1); scene.add(m);
+  });
+
+  // ribbon boards on the drop below the 2층 and 3층 glass
+  const ribbonMats = [];
+  const ribbonTex = (label, sub, col) => sign(1024, 64, (c, w, h) => {
+    c.fillStyle = '#04121a'; c.fillRect(0, 0, w, h); c.textBaseline = 'middle';
+    c.font = `34px ${FD}`; c.fillStyle = col; c.fillText(label, 24, h / 2 + 2);
+    c.fillStyle = '#eaf6f3'; c.fillText(sub, 330, h / 2 + 2);
+  });
+  const rib2 = ribbonTex('LEVEL 2 · 2층', '◆ INSPIRE ARENA ◆ NEON TIDE', '#8fb6ff');
+  const rib3 = ribbonTex('LEVEL 3 · 3층', '◆ INSPIRE ARENA ◆ 15,000', '#c08cff');
+  function ribbon(base, d, y) {
+    const add = (len, x, z, ry) => {
+      if (len < 0.8) return;
+      const t = base.clone(); t.needsUpdate = true; t.wrapS = THREE.RepeatWrapping; t.repeat.x = len / 18;
+      ribbonMats.push(t); plane(len, 1.2, texMat(t), x, y, z, ry);
+    };
+    const xf = FX + d - 0.03, zf = FZ1 + d - 0.03;
+    for (const s of [-1, 1]) {
+      cut(BZ0, FZ1 + d, AISLE_Z).forEach(([a, b]) => add(b - a, s * xf, (a + b) / 2, s > 0 ? -Math.PI / 2 : Math.PI / 2));
+      cut(3.2, FX + d, [AISLE_X]).forEach(([a, b]) => add(b - a, s * (a + b) / 2, zf, Math.PI));
+    }
+  }
+  ribbon(rib2, C1, (l1Top(R1 - 1) + H_C1) / 2);
+  ribbon(rib3, L2E, (l2Top(R2 - 1) + H_C2) / 2);
+
+  // standing floor crowd
+  const bodyPts = [], bodyCol = [];
+  for (let n = 0; n < 640; n++) {
+    let x, z, ok = false;
+    for (let k = 0; k < 8 && !ok; k++) {
+      x = (rnd() * 2 - 1) * (FX - 0.4); z = FZ0 + 0.6 + rnd() * (FZ1 - FZ0 - 1);
+      ok = !(Math.abs(x) < 2.3 && z < -16.2) && !(Math.abs(x) < 4.3 && z > -17.8 && z < -8.6) && !(Math.abs(x) > 9.6 && Math.abs(x) < 14.4 && z < -25.2) && z > -28.9;
+    }
+    if (!ok) continue;
+    bodyPts.push([x, 0.72, z]); bodyCol.push([0x101820, 0x18202a, 0x1d1820, 0x121a14][(rnd() * 4) | 0]);
+    headPts.push([x, 1.57, z]); headCol.push(skin[(rnd() * 4) | 0]);
+    stickPos.push(x + 0.18, 2.0 + rnd() * 0.25, z - 0.05);
+    stickPhase.push(Math.atan2(x, z - STICK_ORIGIN));
+  }
+  instGeo(new THREE.BoxGeometry(0.44, 1.4, 0.3), L(0xffffff), bodyPts, bodyCol);
+  const headMesh = instGeo(new THREE.SphereGeometry(0.14, 6, 4), L(0xffffff), headPts, headCol);
+
+  // lightsticks: one centrally controlled color scene, swept around the bowl as a wave
+  const dotC = document.createElement('canvas'); dotC.width = dotC.height = 64;
+  { const g = dotC.getContext('2d'), rg = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+    rg.addColorStop(0, 'rgba(255,255,255,1)'); rg.addColorStop(0.35, 'rgba(255,255,255,.75)'); rg.addColorStop(1, 'rgba(255,255,255,0)');
+    g.fillStyle = rg; g.fillRect(0, 0, 64, 64); }
+  const dotTex = new THREE.CanvasTexture(dotC);
+  const sGeo = new THREE.BufferGeometry();
+  sGeo.setAttribute('position', new THREE.Float32BufferAttribute(stickPos, 3));
+  const sCol = new Float32Array(stickPos.length);
+  sGeo.setAttribute('color', new THREE.BufferAttribute(sCol, 3));
+  const sticks = new THREE.Points(sGeo, new THREE.PointsMaterial({ size: 0.36, map: dotTex, vertexColors: true, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
+  sticks.frustumCulled = false; scene.add(sticks);
+  const STICK_SCENES = [[0.44, 0.95, 0.81], [0.75, 0.55, 1], [1, 0.42, 0.68], [0.42, 0.62, 1], [1, 0.84, 0.5]];
+
+  // walls, roof, the arena's grid ceiling
+  const wallMat = L(0x0d151d);
+  const ROOF = 27;
+  slab(wallMat, -AW_X, AW_X, 0, ROOF, AZ0 - 0.5, AZ0);
+  slab(wallMat, AW_X - 0.5, AW_X, 0, ROOF, AZ0, 28);
+  slab(wallMat, -AW_X, -AW_X + 0.5, 0, ROOF, AZ0, 28);
+  slab(wallMat, 3.2, AW_X, 0, ROOF, 27.5, 28);
+  slab(wallMat, -AW_X, -3.2, 0, ROOF, 27.5, 28);
+  slab(wallMat, -3.2, 3.2, 4.2, ROOF, 27.5, 28);
+  slab(wallMat, FX, AW_X, 0, 21, AZ0, BZ0);
+  slab(wallMat, -AW_X, -FX, 0, 21, AZ0, BZ0);
+  slab(wallMat, 13, FX, 0, 21, AZ0, -40.2);
+  slab(wallMat, -FX, -13, 0, 21, AZ0, -40.2);
+  slab(L(0x070b10), -AW_X, AW_X, ROOF, ROOF + 0.5, AZ0 - 0.5, 28);
+  const beams = [], pods = [];
+  for (let z = -40; z <= 28; z += 4) beams.push([-AW_X, AW_X, ROOF - 0.8, ROOF - 0.4, z - 0.15, z + 0.15]);
+  for (let x = -40; x <= 40; x += 4) beams.push([x - 0.15, x + 0.15, ROOF - 0.8, ROOF - 0.4, AZ0, 27.5]);
+  for (let z = -38; z <= 26; z += 4) for (let x = -38; x <= 38; x += 4) pods.push([x - 0.35, x + 0.35, ROOF - 0.95, ROOF - 0.85, z - 0.35, z + 0.35]);
+  instBoxes(L(0x1c2834), beams);
+  const podMesh = instBoxes(Bm(0x3d5868), pods);
+
+  // tunnel (Gate 1) under 108 and the camera platform above it
+  const tunMat = L(0x121c25);
+  slab(tunMat, 2.4, 3.2, 0, 3.8, FZ1, 27.5);
+  slab(tunMat, -3.2, -2.4, 0, 3.8, FZ1, 27.5);
+  slab(tunMat, -3.2, 3.2, 3.8, 4.2, FZ1, 28);
+  slab(tunMat, -3.2, 3.2, 4.2, 18.2, FZ1 + C1, 27.5);
+  slab(edgeMat, 2.36, 2.4, 3.6, 3.7, FZ1, 28);
+  slab(edgeMat, -2.4, -2.36, 3.6, 3.7, FZ1, 28);
+  const gateTex = sign(512, 128, (c, w, h) => {
+    c.fillStyle = '#081620'; c.fillRect(0, 0, w, h);
+    c.fillStyle = '#6ff2cf'; c.font = `52px ${FD}`; c.textAlign = 'center'; c.fillText('GATE 1', w / 2, 62);
+    c.fillStyle = '#eaf6f3'; c.font = `500 26px ${FB}`; c.fillText('플로어 · 로비 방면', w / 2, 104);
+  });
+  plane(5, 1.25, texMat(gateTex), 0, 4.9, FZ1 - 0.06, Math.PI);
+
+  // LED ring around the upper bowl
+  const ringTex = sign(1024, 64, (c, w, h) => {
+    c.fillStyle = '#04121a'; c.fillRect(0, 0, w, h);
+    c.fillStyle = '#6ff2cf'; c.font = `36px ${FD}`; c.textBaseline = 'middle';
+    c.fillText('INSPIRE ARENA', 24, h / 2 + 2);
+    c.fillStyle = '#c08cff'; c.fillText('◆ NEON TIDE LIVE ◆ 15,000', 360, h / 2 + 2);
+  });
+  ringTex.wrapS = THREE.RepeatWrapping;
+  const ringMats = ribbonMats;
+  const ringStrip = (len, x, z, ry) => {
+    const t = ringTex.clone(); t.needsUpdate = true; t.wrapS = THREE.RepeatWrapping; t.repeat.x = len / 18;
+    const m = texMat(t); ringMats.push(t); plane(len, 1.1, m, x, 22.5, z, ry);
+  };
+  ringStrip(67, AW_X - 0.56, -6.3, -Math.PI / 2);
+  ringStrip(67, -AW_X + 0.56, -6.3, Math.PI / 2);
+  ringStrip(AW_X * 2 - 1, 0, 27.44, Math.PI);
+  redraws.push(() => ringMats.forEach(t => t.needsUpdate = true));
+
+  // trusses + moving-head beams
+  const trussMat = L(0x262f38);
+  [-37, -32, -27].forEach(z => slab(trussMat, -16, 16, 18.5, 19, z - 0.25, z + 0.25));
+  const beamGeo = new THREE.ConeGeometry(2.2, 24, 18, 1, true); beamGeo.translate(0, -12, 0);
+  const movers = [];
+  [-37, -32, -27].forEach((z, row) => {
+    for (let k = 0; k < 5; k++) {
+      const x = -12 + k * 6;
+      const g = new THREE.Group(); g.position.set(x, 18.4, z);
+      const mat = Bm(0xffffff, { transparent: true, opacity: 0.09, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide });
+      g.add(new THREE.Mesh(beamGeo, mat));
+      const lamp = new THREE.Mesh(new THREE.SphereGeometry(0.28, 10, 8), Bm(0xffffff)); g.add(lamp);
+      scene.add(g); movers.push({ g, mat, lamp, ph: k * 0.9 + row * 1.7, side: k - 2 });
+    }
+  });
+
+  /* =========================================================
+     ARENA LOBBY
+     ========================================================= */
+  const lobbyFloor = L(0x111a22);
+  slab(lobbyFloor, -20.5, 20.5, -0.2, 0, 28, 46.5);
+  slab(L(0x0b1118), -20.5, 20.5, 9, 9.3, 28, 46.5);
+  slab(wallMat, 20, 20.5, 0, 9, 28, 46.5);
+  slab(wallMat, -20.5, -20, 0, 9, 28, 46.5);
+  slab(wallMat, 5, 20.5, 0, 9, 46, 46.5);
+  slab(wallMat, -20.5, -5, 0, 9, 46, 46.5);
+  for (let x = -16; x <= 16; x += 8) slab(Bm(0x274656), x - 2.5, x + 2.5, 8.9, 9, 31, 43);
+  const arenaSign = sign(1024, 200, (c, w, h) => {
+    c.fillStyle = '#06121a'; c.fillRect(0, 0, w, h);
+    const g = c.createLinearGradient(0, 0, w, 0); g.addColorStop(0, '#6ff2cf'); g.addColorStop(1, '#c08cff');
+    c.fillStyle = g; c.font = `96px ${FD}`; c.textAlign = 'center'; c.fillText('INSPIRE ARENA', w / 2, 110);
+    c.fillStyle = '#eaf6f3'; c.font = `500 30px ${FB}`; c.fillText('GATE 1 · 플로어 입장  ↓', w / 2, 168);
+  });
+  plane(17, 3.3, texMat(arenaSign), 0, 6.4, 28.04);
+  const windowsTex = sign(1450, 160, (c, w, h) => {
+    c.fillStyle = '#0a141c'; c.fillRect(0, 0, w, h);
+    for (let i = 0; i < 10; i++) {
+      const x = i * 145 + 12;
+      c.fillStyle = '#16323b'; c.fillRect(x, 26, 121, 120);
+      c.fillStyle = '#6ff2cf'; c.fillRect(x, 26, 121, 6);
+      c.fillStyle = '#eaf6f3'; c.font = `40px ${FD}`; c.textAlign = 'center'; c.fillText(String(i + 1), x + 60, 100);
+      c.fillStyle = '#8ea7ad'; c.font = `500 18px ${FB}`; c.fillText('매표소', x + 60, 132);
+    }
+  });
+  plane(14.5, 1.6, texMat(windowsTex), -19.96, 1.9, 37.3, Math.PI / 2);
+  const ticketTop = sign(1024, 96, (c, w, h) => {
+    c.fillStyle = '#06121a'; c.fillRect(0, 0, w, h); c.fillStyle = '#6ff2cf';
+    c.font = `46px ${FD}`; c.textAlign = 'center'; c.fillText('TICKET BOX · 매표소 10', w / 2, 64);
+  });
+  plane(14.5, 1.36, texMat(ticketTop), -19.96, 3.6, 37.3, Math.PI / 2);
+
+  /* =========================================================
+     ROTUNDA (media-art dome)
+     ========================================================= */
+  slab(lobbyFloor, -5, 5, -0.2, 0, 46, 48.5);
+  slab(wallMat, 4.8, 5.2, 0, 6, 46, 47.6); slab(wallMat, -5.2, -4.8, 0, 6, 46, 47.6);
+  const rotFloor = new THREE.Mesh(new THREE.CircleGeometry(14, 64), L(0x0e1720)); rotFloor.rotation.x = -Math.PI / 2; rotFloor.position.set(0, 0.01, 60); scene.add(rotFloor);
+  const ringFloor = new THREE.Mesh(new THREE.RingGeometry(5, 5.35, 64), Bm(0x6ff2cf)); ringFloor.rotation.x = -Math.PI / 2; ringFloor.position.set(0, 0.03, 60); scene.add(ringFloor);
+  const rotWallMat = L(0x0c141c, { side: THREE.BackSide });
+  [[0.42, Math.PI - 0.84], [Math.PI + 0.42, Math.PI - 0.84]].forEach(([a, l]) => {
+    const w = new THREE.Mesh(new THREE.CylinderGeometry(14, 14, 12, 48, 1, true, a, l), rotWallMat); w.position.set(0, 6, 60); scene.add(w);
+  });
+  const domeU = { t: { value: 0 } };
+  const dome = new THREE.Mesh(new THREE.SphereGeometry(14, 48, 24, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.ShaderMaterial({
+    uniforms: domeU, side: THREE.BackSide,
+    vertexShader: 'varying vec3 vP; void main(){ vP = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }',
+    fragmentShader: `uniform float t; varying vec3 vP;
+      void main(){ vec3 p = normalize(vP); float a = atan(p.z, p.x); float r = acos(clamp(p.y,-1.0,1.0));
+        float v = sin(a*6.0 + t*0.5 + r*9.0)*0.5+0.5; float w = sin(r*15.0 - t*1.1)*0.5+0.5;
+        vec3 col = mix(vec3(0.03,0.06,0.16), vec3(0.32,0.9,0.78), v*w);
+        col += vec3(0.62,0.42,1.0) * pow(w, 7.0) * 0.55; col *= 0.55 + 0.45*(1.0 - smoothstep(0.0,1.6,r));
+        gl_FragColor = vec4(col, 1.0); }`
+  }));
+  dome.position.set(0, 12, 60); scene.add(dome);
+  const sculpt = new THREE.Group(); sculpt.position.set(0, 4.6, 60); scene.add(sculpt);
+  [[2.2, 0x6ff2cf], [1.7, 0xc08cff], [1.2, 0xeaf6f3]].forEach(([r, c], i) => {
+    const m = new THREE.Mesh(new THREE.TorusGeometry(r, 0.05, 8, 64), Bm(c)); m.rotation.x = i * 0.9; sculpt.add(m);
+  });
+
+  /* =========================================================
+     AURORA STREET
+     ========================================================= */
+  slab(lobbyFloor, -6, 6, -0.2, 0, 71, 76);
+  slab(wallMat, 5.8, 6.3, 0, 7, 72, 75); slab(wallMat, -6.3, -5.8, 0, 7, 72, 75);
+  slab(L(0x0f1820), -7.5, 7.5, -0.2, 0, 74, 136.5);
+  slab(wallMat, 7, 7.5, 0, 8.4, 74, 136.5);
+  slab(wallMat, -7.5, -7, 0, 8.4, 74, 136.5);
+  slab(wallMat, -7.5, 7.5, 0, 8.4, 136, 136.5);
+  const auroraU = { t: { value: 0 } };
+  const aurora = new THREE.Mesh(new THREE.PlaneGeometry(14, 62, 1, 1), new THREE.ShaderMaterial({
+    uniforms: auroraU,
+    vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }',
+    fragmentShader: `uniform float t; varying vec2 vUv;
+      void main(){ vec2 uv = vUv; float a = 0.0;
+        for (int i = 0; i < 3; i++) { float f = float(i);
+          float c = 0.5 + 0.24*sin(uv.y*5.5 + t*0.45 + f*2.1) + 0.09*sin(uv.y*17.0 - t*0.8 + f);
+          a += (1.0 - smoothstep(0.0, 0.32, abs(uv.x - c))) * (0.75 - 0.18*f); }
+        vec3 mint = vec3(0.30,0.95,0.78), orchid = vec3(0.62,0.45,1.0), deep = vec3(0.02,0.07,0.16);
+        vec3 band = mix(mint, orchid, 0.5 + 0.5*sin(uv.y*3.0 + t*0.25));
+        vec3 col = mix(deep, band, clamp(a,0.0,1.0)) * (0.45 + 0.75*a);
+        gl_FragColor = vec4(col, 1.0); }`
+  }));
+  aurora.rotation.x = Math.PI / 2; aurora.position.set(0, 8.2, 105); scene.add(aurora);
+  // storefront glow panels (generic, invented)
+  const shops = ['CAFÉ', 'K-BEAUTY', 'GALLERY', 'SNACK BAR', 'LOUNGE', 'SOUVENIR'];
+  shops.forEach((name, i) => {
+    const tex = sign(512, 160, (c, w, h) => {
+      c.fillStyle = '#071219'; c.fillRect(0, 0, w, h);
+      c.strokeStyle = i % 2 ? '#c08cff' : '#6ff2cf'; c.lineWidth = 6; c.strokeRect(8, 8, w - 16, h - 16);
+      c.fillStyle = '#eaf6f3'; c.font = `56px ${FD}`; c.textAlign = 'center'; c.fillText(name, w / 2, 102);
+    });
+    const z = 84 + i * 8.5, s = i % 2 ? 1 : -1;
+    plane(4.2, 1.3, texMat(tex), s * 6.96, 4.6, z, -s * Math.PI / 2);
+    plane(4.2, 2.8, Bm(0x0e2730), s * 6.97, 1.6, z, -s * Math.PI / 2);
+    plane(4.2, 2.8, Bm(0x0e2730), -s * 6.97, 1.6, z + 4.25, s * Math.PI / 2);
+  });
+  const wayTex = sign(1024, 160, (c, w, h) => {
+    c.fillStyle = '#06121a'; c.fillRect(0, 0, w, h);
+    c.fillStyle = '#6ff2cf'; c.font = `64px ${FD}`; c.textAlign = 'center'; c.fillText('INSPIRE ARENA  ▲', w / 2, 82);
+    c.fillStyle = '#8ea7ad'; c.font = `500 28px ${FB}`; c.fillText('로툰다 → 아레나 로비 → GATE 1', w / 2, 130);
+  });
+  plane(8, 1.25, texMat(wayTex), 0, 6.2, 80);
+  slab(L(0x1a2530), -0.05, 0.05, 6.8, 8.2, 79.95, 80.05);
+
+  /* =========================================================
+     BOOTHS
+     ========================================================= */
+  const BOOTHS = [
+    { id: 'ticket', name: '매표소', zone: 'lobby', pos: [-15, 37], rot: Math.PI / 2, color: 0x6ff2cf,
+      kind: 'TICKETING · 로비 1번 창구', title: '공연 예매',
+      desc: '로비 매표소 10곳 중 1번 창구예요. 하단 \'좌석 시야 확인\'에서 구역별 시야를 먼저 보고 바로 예매로 넘어가는 동선을 시험합니다.',
+      items: [['플로어 스탠딩', '154,000원'], ['1층 R석', '154,000원'], ['2층 S석', '132,000원'], ['3층 A석', '110,000원']],
+      fine: '가격은 예시입니다. 실제 결제는 일어나지 않아요.', cta: '예매하기 (데모)', conv: '티켓 예매', done: '예매 전환이 기록됐어요.' },
+    { id: 'md', name: 'MD 스토어', zone: 'lobby', pos: [15, 34], rot: -Math.PI / 2, color: 0xc08cff,
+      kind: 'MERCH · 공식 MD', title: '응원봉 + MD 스토어',
+      desc: '공연 중 객석 응원봉은 중앙에서 색을 바꿔요. 미리 사서 좌석을 등록하면 연출에 참여한다는 설정이라 구매 이유가 생깁니다.',
+      items: [['응원봉', '45,000원'], ['투어 티셔츠', '39,000원'], ['포토카드 세트', '15,000원']],
+      fine: '가격은 예시입니다.', cta: '구매하기 (데모)', conv: '응원봉 구매', done: '구매 전환이 기록됐어요. 객석 응원봉 색을 확인해 보세요.' },
+    { id: 'food', name: '퀵바이트', zone: 'lobby', pos: [15, 42], rot: -Math.PI / 2, color: 0xffcf7a,
+      kind: 'F&B · 퀵바이트 로비점', title: '퀵바이트 쿠폰',
+      desc: '아레나 안 퀵바이트 매점 8곳 중 로비점이에요. 공연장 내부는 생수 외 음식 반입이 안 돼서, 입장 전에 쓰는 쿠폰을 띄웁니다.',
+      items: [['핫도그 + 음료 세트', '12,000원'], ['프레첼', '7,000원'], ['쿠폰 할인', '−2,000원']],
+      fine: '메뉴와 가격은 예시입니다.', cta: '쿠폰 받기', conv: '쿠폰 다운로드', done: '쿠폰 다운로드가 기록됐어요.' },
+    { id: 'pkg', name: '패키지 데스크', zone: 'rotunda', pos: [9.2, 62], rot: -Math.PI / 2, color: 0x8fb6ff,
+      kind: 'RESORT · 패키지 데스크', title: '호텔 + 셔틀 패키지',
+      desc: '공항 옆 리조트라는 입지를 공연과 묶어 파는 부스예요. 공연일 셔틀은 공항화물청사역에서 약 10분이고, 리조트 호텔은 1,275실 규모입니다.',
+      items: [['공연 + 호텔 1박', '예시 패키지'], ['공연일 셔틀', '공항화물청사역 ↔ 아레나'], ['알림 채널', '카카오 알림톡 (예시)']],
+      fine: '패키지 구성은 예시입니다.', cta: '셔틀·패키지 알림 신청', conv: '알림 신청', done: '알림 신청이 기록됐어요.' },
+    { id: 'photo', name: '오로라 포토존', zone: 'street', pos: [-4.6, 96], rot: Math.PI / 2, color: 0xff7fb8,
+      kind: 'UGC · 오로라 포토존', title: '오로라 포토 챌린지',
+      desc: '오로라 LED 천장 아래 인증샷을 올리면 굿즈 추첨에 응모돼요. 공연 전 대기 시간을 SNS 확산으로 바꾸는 장치입니다.',
+      items: [['참여 방법', '해시태그 + 인증샷'], ['리워드', '포토카드 추첨'], ['측정 지표', 'UGC 게시 수']],
+      fine: '이벤트 내용은 예시입니다.', cta: '챌린지 참여하기', conv: '챌린지 참여', done: '챌린지 참여가 기록됐어요.' },
+  ];
+  const hitMeshes = [];
+  BOOTHS.forEach(b => {
+    const g = new THREE.Group(); g.position.set(b.pos[0], 0, b.pos[1]); g.rotation.y = b.rot;
+    const hexc = '#' + b.color.toString(16).padStart(6, '0');
+    const counter = new THREE.Mesh(UNIT, L(0x1a2a36)); counter.scale.set(3, 1.05, 0.9); counter.position.set(0, 0.525, 0.3); g.add(counter);
+    const strip = new THREE.Mesh(UNIT, Bm(b.color)); strip.scale.set(3.02, 0.06, 0.92); strip.position.set(0, 1.06, 0.3); g.add(strip);
+    const back = new THREE.Mesh(UNIT, L(0x0f1b24)); back.scale.set(3.4, 3.4, 0.2); back.position.set(0, 1.7, -0.8); g.add(back);
+    const tex = sign(512, 256, (c, w, h) => {
+      c.fillStyle = '#071219'; c.fillRect(0, 0, w, h);
+      c.fillStyle = hexc; c.fillRect(0, 0, w, 10);
+      c.font = `600 22px "JetBrains Mono",monospace`; c.fillText(b.kind.split(' · ')[0], 28, 62);
+      c.fillStyle = '#eaf6f3'; c.font = `60px ${FD}`; c.fillText(b.name, 28, 150);
+      c.fillStyle = '#8ea7ad'; c.font = `500 24px ${FB}`; c.fillText(b.title, 28, 206);
+    });
+    const face = new THREE.Mesh(new THREE.PlaneGeometry(3.2, 1.6), texMat(tex)); face.position.set(0, 2.45, -0.69); g.add(face);
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(0.42, 0.06, 8, 32), Bm(b.color)); ring.position.set(0, 4.1, -0.2); g.add(ring);
+    scene.add(g);
+    [counter, back, face].forEach(m => { m.userData.booth = b; hitMeshes.push(m); });
+    b.ring = ring; b.front = [Math.sin(b.rot), Math.cos(b.rot)];
+    fill(b.pos[0] - 1.8, b.pos[0] + 1.8, b.pos[1] - 1.8, b.pos[1] + 1.8, NaN);
+  });
+
+  /* =========================================================
+     PLAYER
+     ========================================================= */
+  const EYE = 1.65;
+  const P = { x: 0, z: 130, yaw: 0, pitch: 0.04, ground: 0, camY: EYE, eye: EYE };
+  const VIEWS = {
+    street: { p: [0, 130], look: [0, 60], pitch: 0.04 },
+    rotunda: { p: [0, 69.5], look: [0, 55], pitch: 0.34 },
+    lobby: { p: [0, 44.5], look: [0, 28], pitch: 0.08 },
+    front: { p: [5, -27.5], look: [0, -38], pitch: 0.2 },
+    mid: { p: [6.4, -6], look: [0, -36], pitch: 0.06 },
+    l1: { p: [18.8, -12], look: [0, -33], pitch: 0 },
+    l2: { p: [27.6, -12], look: [0, -33], pitch: -0.14 },
+    l3: { p: [5.5, 23.6], look: [0, -34], pitch: -0.24 },
+  };
+  let activeView = 'street';
+  function goView(id) {
+    const v = VIEWS[id]; if (!v) return;
+    P.x = v.p[0]; P.z = v.p[1];
+    P.yaw = Math.atan2(-(v.look[0] - v.p[0]), -(v.look[1] - v.p[1]));
+    P.pitch = v.pitch;
+    const h = hAt(P.x, P.z); P.ground = isNaN(h) ? 0 : h; P.eye = EYE; P.camY = P.ground + EYE; P.baseYaw = null; P.basePitch = null; lookT = null;
+    activeView = id;
+    document.querySelectorAll('[data-view]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.view === id)));
+  }
+
+  /* ---------- input ---------- */
+  const keys = {};
+  const KEYMAP = { KeyW: 'up', ArrowUp: 'up', KeyS: 'down', ArrowDown: 'down', KeyA: 'left', ArrowLeft: 'left', KeyD: 'right', ArrowRight: 'right', ShiftLeft: 'run', ShiftRight: 'run' };
+  addEventListener('keydown', e => {
+    if (e.target.closest && e.target.closest('input,textarea')) return;
+    const dk = KEYMAP[e.code];
+    if (dk && dk !== 'run' && seated()) {
+      e.preventDefault();
+      if (!e.repeat || dk === 'left' || dk === 'right') stepSeat(dk === 'up' ? -1 : dk === 'down' ? 1 : 0, dk === 'left' ? -1 : dk === 'right' ? 1 : 0);
+      return;
+    }
+    if (dk) { keys[dk] = true; if (e.code.startsWith('Arrow')) e.preventDefault(); }
+    if (e.code === 'KeyE' && nearBooth) openBooth(nearBooth);
+    if (e.code === 'Escape') { if (seated()) standUp(); else { closePanel(); closeSeat(); } }
+  });
+  addEventListener('keyup', e => { if (KEYMAP[e.code]) keys[KEYMAP[e.code]] = false; });
+  addEventListener('blur', () => { for (const k in keys) keys[k] = false; });
+
+  let drag = null;
+  canvas.addEventListener('pointerdown', e => {
+    drag = { id: e.pointerId, x: e.clientX, y: e.clientY, sx: e.clientX, sy: e.clientY };
+    try { canvas.setPointerCapture(e.pointerId); } catch (_) {}
+  });
+  canvas.addEventListener('pointermove', e => {
+    if (!drag || drag.id !== e.pointerId) return;
+    const dx = e.clientX - drag.x, dy = e.clientY - drag.y; drag.x = e.clientX; drag.y = e.clientY;
+    const k = coarse ? 0.006 : 0.0045;
+    P.yaw -= dx * k; P.pitch = Math.max(-1.3, Math.min(1.3, P.pitch - dy * k * 0.8)); lookT = null; markLook(null);
+  });
+  const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
+  canvas.addEventListener('pointerup', e => {
+    if (!drag) return;
+    const moved = Math.hypot(e.clientX - drag.sx, e.clientY - drag.sy); drag = null;
+    if (moved > 6) return;
+    const cr = canvas.getBoundingClientRect();
+    ndc.set((e.clientX - cr.left) / cr.width * 2 - 1, -((e.clientY - cr.top) / cr.height) * 2 + 1);
+    ray.setFromCamera(ndc, camera);
+    const hit = ray.intersectObjects(hitMeshes, false)[0];
+    if (hit && hit.distance < 22) { openBooth(hit.object.userData.booth); return; }
+    const sh = ray.intersectObject(seatMesh, false)[0];
+    const info = sh && sh.instanceId != null && sh.distance < 40 ? seatInfoByIdx[sh.instanceId] : null;
+    if (info) { if ($('#seat').hidden) openSeat(); pickSeat(info.sec, info.r, info.n); }
+  });
+  canvas.addEventListener('pointercancel', () => { drag = null; });
+
+  if (coarse) {
+    $('#pad').hidden = false;
+    $('#pad').querySelectorAll('button').forEach(btn => {
+      const d = btn.dataset.dir;
+      if (d === 'run') { btn.addEventListener('click', () => { keys.run = !keys.run; btn.classList.toggle('on', keys.run); }); return; }
+      const on = e => { e.preventDefault(); if (seated()) { stepSeat(d === 'up' ? -1 : d === 'down' ? 1 : 0, d === 'left' ? -1 : d === 'right' ? 1 : 0); return; } keys[d] = true; btn.classList.add('on'); };
+      const off = () => { keys[d] = false; btn.classList.remove('on'); };
+      btn.addEventListener('pointerdown', on); btn.addEventListener('pointerup', off);
+      btn.addEventListener('pointerleave', off); btn.addEventListener('pointercancel', off);
+    });
+  }
+
+  /* ---------- metrics ---------- */
+  const ZONES = { street: '오로라 거리', rotunda: '로툰다', lobby: '아레나 로비', arena: '객석' };
+  const ORDER = ['street', 'rotunda', 'lobby', 'arena'];
+  const zoneOf = z => z > 72 ? 'street' : z > 46 ? 'rotunda' : z > 28 ? 'lobby' : 'arena';
+  const ARRIVE = {
+    rotunda: '<b>로툰다</b> · 돔 미디어아트 아래 패키지 데스크가 있어요',
+    lobby: '<b>아레나 로비</b> · 매표소 10곳과 MD·퀵바이트',
+    arena: '<b>객석 1층</b> · 통로 계단(초록 유도등)으로 2층·3층까지 올라갈 수 있어요',
+  };
+  const M = { dwell: 0, dist: 0, inter: 0, visits: new Set(), convs: new Set(), zoneT: { street: 0, rotunda: 0, lobby: 0, arena: 0 }, reached: new Set(['street']), zone: 'street', lvl: 0, lvls: new Set([1]), log: [] };
+  const fmt = s => { s = Math.floor(s); return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0'); };
+  const fmtShort = s => s < 60 ? Math.floor(s) + 's' : Math.floor(s / 60) + 'm' + String(Math.floor(s % 60)).padStart(2, '0');
+  function log(text, cv) {
+    M.log.unshift({ t: M.dwell, text, cv }); M.log.length = Math.min(M.log.length, 6);
+    $('#log').innerHTML = M.log.map(l => `<li class="${l.cv ? 'cv' : ''}"><time>${fmt(l.t)}</time><span>${l.text}</span></li>`).join('');
+  }
+  let toastT = 0;
+  function toast(html) { const t = $('#toast'); t.innerHTML = html.replace('</b> · ', '</b>'); t.hidden = false; toastT = 3.6; }
+  function renderKPI() {
+    $('#kDwell').textContent = fmt(M.dwell);
+    $('#kDist').textContent = Math.round(M.dist);
+    $('#kVisit').textContent = M.visits.size;
+    $('#kVisitBar').style.width = (M.visits.size / BOOTHS.length * 100) + '%';
+    $('#kInter').textContent = M.inter;
+    $('#kConv').textContent = M.convs.size;
+    $('#kRate').textContent = M.visits.size ? Math.round(M.convs.size / M.visits.size * 100) : 0;
+    document.querySelectorAll('#journey li').forEach(li => {
+      const z = li.dataset.z;
+      li.classList.toggle('reached', M.reached.has(z));
+      li.classList.toggle('here', M.zone === z);
+      li.querySelector('span').textContent = fmtShort(M.zoneT[z]);
+    });
+    $('#jStep').textContent = `${M.reached.size} / 4 단계`;
+    $('#kpiMini').textContent = `여정 ${M.reached.size}/4 · 방문 ${M.visits.size} · 전환 ${M.convs.size}`;
+  }
+
+  /* ---------- booth panel ---------- */
+  let openB = null, nearBooth = null;
+  function openBooth(b) {
+    if (innerWidth < 760) closeSeat();
+    openB = b; M.inter++;
+    if (!M.visits.has(b.id)) { M.visits.add(b.id); log(`부스 방문 · ${b.name}`); }
+    const hexc = '#' + b.color.toString(16).padStart(6, '0');
+    $('#pKind').textContent = b.kind; $('#pKind').style.setProperty('--kc', hexc);
+    $('#pTitle').textContent = b.title; $('#pDesc').textContent = b.desc;
+    $('#pItems').innerHTML = b.items.map(([a, v]) => `<li><span>${a}</span><span>${v}</span></li>`).join('');
+    $('#pFine').textContent = b.fine;
+    const done = M.convs.has(b.id), cta = $('#pCta');
+    cta.disabled = done; cta.textContent = done ? '완료됨' : b.cta;
+    $('#pDone').hidden = !done; $('#pDone').textContent = b.done;
+    $('#panel').hidden = false; renderKPI();
+  }
+  function closePanel() { $('#panel').hidden = true; openB = null; }
+  $('#panelClose').addEventListener('click', closePanel);
+  $('#pCta').addEventListener('click', () => {
+    const b = openB; if (!b || M.convs.has(b.id)) return;
+    M.convs.add(b.id); M.inter++;
+    log(`전환 · ${b.conv}`, true);
+    $('#pCta').disabled = true; $('#pCta').textContent = '완료됨';
+    $('#pDone').hidden = false; $('#pDone').textContent = b.done;
+    b.ring.material.color.setHex(0xeaf6f3);
+    if (b.id === 'md') stickBoost = 6;
+    renderKPI();
+  });
+  $('#promptBtn').addEventListener('click', () => nearBooth && openBooth(nearBooth));
+
+  /* ---------- seat view (좌석 시야) ---------- */
+  const SVG_NS = 'http://www.w3.org/2000/svg';
+  const SK = 3.6, MU2 = x => (x + AW_X) * SK, MV2 = z => (z - AZ0) * SK;
+  const STAGE_FRONT = [0, 1.8, FZ0], SCREEN = [0, 8.6, -40.25], LOOK = [0, 5.4, -33];
+  const PRICE_RESTRICTED = '77,000원';
+  let seatSel = null, selRow = 0, selNum = 0;
+  const seatViewed = new Set();
+  function el(tag, attrs, parent) { const e = document.createElementNS(SVG_NS, tag); for (const k in attrs) if (attrs[k] !== null) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; }
+  function secRects(sec) {
+    if (sec.kind === 'floor') return [[sec.x1, sec.x2, sec.z1, sec.z2]];
+    const Lv = sec.Lv;
+    if (sec.kind === 'side') { const x1 = FX + Lv.da, x2 = FX + Lv.db; return [sec.s > 0 ? [x1, x2, sec.a, sec.b] : [-x2, -x1, sec.a, sec.b]]; }
+    const zr = [FZ1 + Lv.da, FZ1 + Lv.db];
+    if (sec.kind === 'back') return [sec.s > 0 ? [sec.a, sec.b, ...zr] : [-sec.b, -sec.a, ...zr]];
+    return [[-sec.b, -sec.a, ...zr], [sec.a, sec.b, ...zr]];
+  }
+  const svgW = AW_X * 2 * SK, svgH = (28 - AZ0) * SK;
+  const svg = el('svg', { viewBox: `0 0 ${svgW.toFixed(0)} ${svgH.toFixed(0)}`, role: 'img', 'aria-label': '인스파이어 아레나 좌석 구역도 (K팝 콘서트 엔드 스테이지)' }, $('#seatmap'));
+  el('rect', { x: 0, y: 0, width: svgW, height: svgH, rx: 6, fill: '#ffffff', stroke: '#e3e6ee' }, svg);
+  el('rect', { x: MU2(-FX), y: MV2(FZ0), width: FX * 2 * SK, height: (FZ1 - FZ0) * SK, fill: '#fff8ec' }, svg);
+  el('rect', { x: MU2(-2.4), y: MV2(FZ1), width: 4.8 * SK, height: (28 - FZ1) * SK, fill: '#e3e6ee' }, svg);
+  const gt = el('text', { x: MU2(0), y: MV2(25), 'text-anchor': 'middle', class: 'lbl', style: 'fill:#7b818d' }, svg); gt.textContent = 'G1';
+  const secEls = {};
+  SECTIONS.forEach(sec => {
+    const col = sec.kind === 'floor' ? FLOOR_COL : sec.Lv.col;
+    const op = 1;
+    const g = el('g', { class: 'sec', tabindex: 0, role: 'button', 'aria-label': sec.kind === 'floor' ? `플로어 ${sec.id}구역` : `${sec.id}구역` }, svg);
+    const rs = secRects(sec);
+    rs.forEach(([x1, x2, z1, z2]) => el('rect', { x: MU2(x1) + .5, y: MV2(z1) + .5, width: Math.max(1, (x2 - x1) * SK - 1), height: Math.max(1, (z2 - z1) * SK - 1), rx: 1.5, fill: col, 'fill-opacity': op, 'stroke-dasharray': sec.restricted ? '2 1.5' : null, stroke: sec.restricted ? '#5b6170' : null }, g));
+    g.addEventListener('click', () => pickSection(sec));
+    g.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pickSection(sec); } });
+    secEls[sec.id] = g;
+    rs.forEach(([x1, x2, z1, z2]) => {
+      const cx = MU2(sec.kind === 'floor' ? sec.spot[0] : (x1 + x2) / 2), cy = MV2(sec.kind === 'floor' ? sec.spot[1] : (z1 + z2) / 2) + 2;
+      const t = el('text', { x: cx, y: cy, 'text-anchor': 'middle', class: 'lbl' }, svg);
+      if ((x2 - x1) * SK < 20 && (z2 - z1) > (x2 - x1)) t.setAttribute('transform', `rotate(-90 ${cx} ${cy})`);
+      t.textContent = sec.id;
+    });
+  });
+  // stage drawn on top of the floor zones
+  el('rect', { x: MU2(-13), y: MV2(-40.2), width: 26 * SK, height: (FZ0 + 40.2) * SK, rx: 2, fill: '#3b4cf5' }, svg);
+  el('rect', { x: MU2(-1.5), y: MV2(FZ0), width: 3 * SK, height: (-17 - FZ0) * SK, fill: '#3b4cf5' }, svg);
+  el('polygon', { points: [[-3.5, -17], [3.5, -17], [3.5, -12], [0, -9.5], [-3.5, -12]].map(([x, z]) => `${MU2(x)},${MV2(z)}`).join(' '), fill: '#3b4cf5' }, svg);
+  [-1, 1].forEach(s => el('rect', { x: MU2(s * 12 - 1.5), y: MV2(FZ0), width: 3 * SK, height: 3 * SK, fill: '#3b4cf5' }, svg));
+  const st = el('text', { x: MU2(0), y: MV2(-35), 'text-anchor': 'middle', class: 'lbl inv' }, svg); st.textContent = 'MAIN STAGE';
+  $('#legend').innerHTML = [['플로어 스탠딩', FLOOR_COL], ...LEVELS.map(l => [l.grade, l.col])]
+    .map(([n, c]) => `<span><i style="background:${c}"></i>${n}</span>`).join('') + '<span><i style="border:1px dashed #5b6170"></i>시야제한</span>';
+
+  function seatsOf(sec, r) {
+    const d0 = sec.Lv.da + r * ROW, dm = d0 + ROW / 2;
+    if (sec.kind === 'side') { const l = sideSeatZ(d0).filter(z => z > sec.a && z < sec.b && !inAisle(sec.s * (FX + dm), z)).map(z => [sec.s * (FX + dm), z]); return sec.s > 0 ? l.reverse() : l; }
+    const xs = backSeatX(d0).filter(x => { const ax = Math.abs(x); return ax > sec.a && ax < sec.b && !inAisle(x, FZ1 + dm) && (sec.kind === 'center' || Math.sign(x) === sec.s); });
+    return xs.map(x => [x, FZ1 + dm]);
+  }
+  // map every 3D seat to its section / row / number
+  const pkey = (x, z) => x.toFixed(2) + ',' + z.toFixed(2);
+  const seatByPos = new Map();
+  SECTIONS.forEach(sec => { if (sec.kind === 'floor') return; for (let r = 0; r < sec.Lv.rows; r++) seatsOf(sec, r).forEach(([x, z], n) => seatByPos.set(pkey(x, z), { sec, r, n })); });
+  const seatInfoByIdx = seatPts.map(([x, , z]) => seatByPos.get(pkey(x, z)) || null);
+  const idxByKey = new Map();
+  seatInfoByIdx.forEach((info, i) => { if (info) idxByKey.set(`${info.sec.id}-${info.r}-${info.n}`, i); });
+  const seenSeats = new Set();
+  const C_SEEN = new THREE.Color(0x8a9be0), C_CUR = new THREE.Color(0xffb347), C_TMP = new THREE.Color();
+  let curIdx = -1, hiddenHead = -1, hiddenHeadM = null, lastSeatKey = '';
+  const seated = () => !!(seatSel && seatSel.kind !== 'floor');
+  function paintSeat(i) {
+    if (i < 0) return;
+    const info = seatInfoByIdx[i], key = info ? `${info.sec.id}-${info.r}-${info.n}` : '';
+    seatMesh.setColorAt(i, i === curIdx ? C_CUR : seenSeats.has(key) ? C_SEEN : C_TMP.setHex(seatCol[i]));
+    if (seatMesh.instanceColor) seatMesh.instanceColor.needsUpdate = true;
+  }
+  function releaseSeat3D() {
+    const prev = curIdx; curIdx = -1; paintSeat(prev);
+    if (hiddenHead >= 0) { headMesh.setMatrixAt(hiddenHead, hiddenHeadM); headMesh.instanceMatrix.needsUpdate = true; hiddenHead = -1; }
+  }
+  function occupySeat3D(i) {
+    releaseSeat3D(); if (i < 0) return;
+    curIdx = i; paintSeat(i);
+    const h = seatHead[i];
+    if (h >= 0) { hiddenHeadM = new THREE.Matrix4(); headMesh.getMatrixAt(h, hiddenHeadM); headMesh.setMatrixAt(h, new THREE.Matrix4().makeScale(0, 0, 0)); headMesh.instanceMatrix.needsUpdate = true; hiddenHead = h; }
+  }
+  function clearSeatHighlight() {
+    if (!seatSel) return;
+    releaseSeat3D();
+    secEls[seatSel.id].classList.remove('on'); seatSel = null;
+    $('#seatSel').hidden = true; $('#seatEmpty').hidden = false;
+    renderSeatChart();
+  }
+  function standUp() { if (!seated()) return; P.eye = EYE; log('좌석에서 일어남'); clearSeatHighlight(); }
+  function pickSeat(sec, r, n) {
+    if (seatSel && seatSel !== sec) secEls[seatSel.id].classList.remove('on');
+    seatSel = sec; secEls[sec.id].classList.add('on');
+    selRow = r; selNum = n;
+    applySeat(true);
+  }
+  function pickSection(sec) {
+    if (sec.kind === 'floor') pickSeat(sec, 0, 0);
+    else { const r = Math.min(4, sec.Lv.rows - 1); pickSeat(sec, r, Math.floor(seatsOf(sec, r).length / 2)); }
+    showTab(sec.kind === 'floor' ? 'map' : 'seats');
+  }
+  function showTab(t) {
+    $('#tabMap').setAttribute('aria-pressed', String(t === 'map'));
+    $('#tabSeats').setAttribute('aria-pressed', String(t === 'seats'));
+    $('#mapView').hidden = t !== 'map'; $('#seatsView').hidden = t !== 'seats';
+    if (t === 'seats') renderSeatChart();
+  }
+  $('#tabMap').addEventListener('click', () => showTab('map'));
+  $('#tabSeats').addEventListener('click', () => showTab('seats'));
+  let chartSec = null;
+  function renderSeatChart() {
+    if ($('#seatsView').hidden) return;
+    const sec = seatSel, grid = $('#svGrid');
+    if (!sec || sec.kind === 'floor') {
+      chartSec = null;
+      $('#svTitle').textContent = sec ? `플로어 ${sec.id}구역` : '구역을 먼저 고르세요';
+      $('#svGrade').textContent = sec ? '스탠딩 · 지정 좌석 없음' : '';
+      $('#svStage').textContent = '▲ 무대 방향';
+      grid.innerHTML = `<p class="seat-empty">${sec ? '플로어는 스탠딩이라 좌석표가 없어요. 구역도에서 1~3층 구역을 골라 보세요.' : '구역도에서 구역을 누르면 그 구역의 좌석표가 열려요.'}</p>`;
+      return;
+    }
+    if (chartSec !== sec) {
+      chartSec = sec;
+      $('#svTitle').textContent = `${sec.id}구역`;
+      $('#svGrade').textContent = sec.restricted ? `${sec.Lv.n}층 시야제한석 · ${PRICE_RESTRICTED}` : `${sec.Lv.grade} · ${sec.Lv.price}`;
+      $('#svStage').textContent = sec.kind === 'side' ? `A열이 앞(플로어 쪽) · 메인무대는 ${sec.s < 0 ? '◀ 왼쪽' : '오른쪽 ▶'}` : '▲ 무대 방향 · A열이 앞';
+      const rows = []; let maxN = 0;
+      for (let r = 0; r < sec.Lv.rows; r++) { const n = seatsOf(sec, r).length; rows.push(n); maxN = Math.max(maxN, n); }
+      const avail = ($('#svWrap').clientWidth || 340) - 34;
+      const cs = Math.max(8, Math.min(18, Math.floor(avail / maxN) - 2));
+      grid.style.setProperty('--cs', cs + 'px');
+      grid.innerHTML = rows.map((n, r) => `<div class="sv-row"><span class="sv-rl">${ROW_LETTERS[r]}열</span><div class="sv-seats">${
+        Array.from({ length: n }, (_, k) => `<button type="button" class="sv-seat" data-r="${r}" data-n="${k}" aria-label="${ROW_LETTERS[r]}열 ${k + 1}번"></button>`).join('')}</div></div>`).join('');
+    }
+    grid.querySelectorAll('.sv-seat').forEach(b => {
+      const r = +b.dataset.r, n = +b.dataset.n;
+      b.classList.toggle('cur', seatSel === sec && r === selRow && n === selNum);
+      b.classList.toggle('seen', seenSeats.has(`${sec.id}-${r}-${n}`));
+    });
+    const cur = grid.querySelector('.sv-seat.cur');
+    if (cur) { const w = $('#svWrap'), cr = cur.getBoundingClientRect(), wr = w.getBoundingClientRect(); if (cr.left < wr.left || cr.right > wr.right) w.scrollLeft += (cr.left + cr.right) / 2 - (wr.left + wr.right) / 2; }
+  }
+  $('#svGrid').addEventListener('click', e => {
+    const b = e.target.closest('.sv-seat'); if (!b || !chartSec) return;
+    pickSeat(chartSec, +b.dataset.r, +b.dataset.n);
+  });
+  const tip = $('#svTip');
+  $('#svGrid').addEventListener('mouseover', e => {
+    const b = e.target.closest('.sv-seat'); if (!b || !chartSec) { tip.hidden = true; return; }
+    const r = b.getBoundingClientRect();
+    tip.textContent = `${chartSec.id}구역 · ${ROW_LETTERS[+b.dataset.r]}열 ${+b.dataset.n + 1}번`;
+    tip.style.left = (r.left + r.width / 2) + 'px'; tip.style.top = r.top + 'px'; tip.hidden = false;
+  });
+  $('#svGrid').addEventListener('mouseleave', () => { tip.hidden = true; });
+  const secName = sec => sec.kind === 'floor' ? `플로어 ${sec.id}구역` : `${sec.id}구역`;
+  function applySeat(logIt) {
+    const sec = seatSel; if (!sec) return;
+    let x, z, ground, eye;
+    if (sec.kind === 'floor') { [x, z] = sec.spot; ground = 0; eye = EYE; }
+    else {
+      const list = seatsOf(sec, selRow); selNum = Math.max(0, Math.min(list.length - 1, selNum));
+      [x, z] = list[selNum]; ground = sec.Lv.top(selRow); eye = 1.15;
+      const key = `${sec.id}-${selRow}-${selNum}`;
+      seenSeats.add(key);
+      occupySeat3D(idxByKey.has(key) ? idxByKey.get(key) : -1);
+    }
+    if (sec.kind === 'floor') releaseSeat3D();
+    P.x = x; P.z = z; P.ground = ground; P.eye = eye; P.camY = ground + eye;
+    const ey = ground + eye;
+    P.yaw = Math.atan2(-(LOOK[0] - x), -(LOOK[2] - z));
+    P.pitch = Math.atan2(LOOK[1] - ey, Math.hypot(LOOK[0] - x, LOOK[2] - z));
+    P.baseYaw = P.yaw; P.basePitch = P.pitch; lookT = null; markLook('front');
+    activeView = null; document.querySelectorAll('[data-view]').forEach(b => b.setAttribute('aria-pressed', 'false'));
+
+    const dStage = Math.hypot(x - STAGE_FRONT[0], ey - STAGE_FRONT[1], z - STAGE_FRONT[2]);
+    const dHouse = Math.hypot(x, ey - 1.4, z + 13);
+    const dScr = Math.hypot(x - SCREEN[0], ey - SCREEN[1], z - SCREEN[2]);
+    const ang = Math.round(Math.atan2(Math.abs(x), z - SCREEN[2]) * 180 / Math.PI);
+    const scr = 2 * Math.atan(13.5 / dScr) * 180 / Math.PI;
+    const down = Math.atan2(ey - STAGE_FRONT[1], Math.hypot(x, z - STAGE_FRONT[2])) * 180 / Math.PI;
+    $('#sDist').textContent = dStage.toFixed(1);
+    $('#sHouse').textContent = dHouse.toFixed(1);
+    $('#sEye').textContent = ey.toFixed(1);
+    $('#sDown').textContent = Math.max(0, Math.round(down));
+    $('#sAng').textContent = ang;
+    $('#sScr').textContent = scr.toFixed(0);
+    const v = $('#sVerdict');
+    if (sec.restricted) { v.className = 'verdict side'; v.textContent = '시야제한석'; }
+    else if (ang <= 32) { v.className = 'verdict good'; v.textContent = '정면 시야'; }
+    else if (ang <= 58) { v.className = 'verdict mid'; v.textContent = '사선 시야'; }
+    else { v.className = 'verdict side'; v.textContent = '측면 시야'; }
+    let note;
+    if (sec.kind === 'floor') {
+      $('#sId').textContent = `플로어 ${sec.id}구역`;
+      $('#sGrade').innerHTML = `스탠딩 · 입장 순서대로 · <em>154,000원</em>`;
+      const front = 'FGHI'.includes(sec.id), mid = 'ABCDE'.includes(sec.id);
+      note = front ? (sec.id === 'F' || sec.id === 'I' ? '모서리 소형무대 바로 앞이에요. 메인무대는 사선으로 보여요.' : '메인무대와 돌출무대 사이, 가장 가까운 구역이에요. 앞사람 키에 따라 시야가 달라져요.')
+        : mid ? (sec.id === 'C' ? '집 모양 센터 스테이지 바로 뒤예요. 돌출무대에 올라오면 뒷모습 위주로 보여요.' : '센터 스테이지와 가까운 중간 구역이에요. 메인 스크린도 정면에 가깝게 보여요.')
+        : '플로어 뒤쪽이라 무대는 멀지만 전체 연출과 스크린이 한눈에 들어와요. 단차가 없어 무대 바닥은 잘 안 보여요.';
+      $('#rowStep').hidden = true; $('#numStep').hidden = true;
+    } else {
+      const list = seatsOf(sec, selRow), rowL = ROW_LETTERS[selRow];
+      $('#sId').textContent = `${sec.id}구역 ${rowL}열 ${selNum + 1}번`;
+      $('#sGrade').innerHTML = sec.restricted ? `${sec.Lv.n}층 시야제한석 · <em>${PRICE_RESTRICTED}</em>` : `${sec.Lv.grade} · <em>${sec.Lv.price}</em>`;
+      $('#rowStep').hidden = false; $('#numStep').hidden = false;
+      $('#rowLbl').textContent = `${rowL}열 (${selRow + 1}/${sec.Lv.rows})`; $('#numLbl').textContent = `${selNum + 1}번 / ${list.length}`;
+      $('#rowPrev').disabled = selRow === 0; $('#rowNext').disabled = selRow >= sec.Lv.rows - 1;
+      $('#numPrev').disabled = selNum === 0; $('#numNext').disabled = selNum >= list.length - 1;
+      const parts = [];
+      if (sec.restricted) parts.push('무대 바로 옆 구역이라 메인 스크린과 무대 안쪽이 거의 안 보여요. 대신 무대 옆 동선은 가까이서 보여요.');
+      else if (ang > 58) parts.push('메인 스크린이 비스듬히 보여서 측면 IMAG 스크린을 함께 보게 돼요.');
+      else if (ang > 32) parts.push('무대를 사선으로 보지만 돌출무대와 센터 스테이지 동선은 잘 보여요.');
+      else parts.push('메인무대, 돌출무대, 센터 스테이지가 일직선으로 보이는 정면 구역이에요.');
+      if (sec.Lv.n > 1 && selRow < 2) parts.push('A·B열은 앞 유리 난간이 시야 아래쪽을 조금 가릴 수 있어요.');
+      else if (sec.Lv.n === 1 && selRow < 3) parts.push('1층 가변석 앞쪽이라 무대와 눈높이가 비슷해요.');
+      else if (down > 16) parts.push('높은 위치라 무대 전체 연출과 객석 응원봉이 한눈에 보여요.');
+      note = parts.join(' ');
+    }
+    $('#sNote').textContent = note;
+    $('#seatSel').hidden = false; $('#seatEmpty').hidden = true;
+    const done = M.convs.has('ticket');
+    $('#sCta').disabled = done; $('#sCta').textContent = done ? '예매 완료됨' : '이 좌석 예매하기 (데모)';
+    seatViewed.add(sec.id);
+    const label = sec.kind === 'floor' ? secName(sec) : `${sec.id}구역 ${ROW_LETTERS[selRow]}열 ${selNum + 1}번`;
+    if (label !== lastSeatKey) { lastSeatKey = label; M.inter++; log(`좌석 시야 · ${label}`); }
+    $('#kSeat').textContent = seenSeats.size + [...seatViewed].filter(id => /^[A-Z]$/.test(id)).length;
+    $('#kSeatLast').textContent = label;
+    renderKPI();
+    renderSeatChart();
+  }
+  const stepSeat = (dr, dn) => { if (!seated()) return; selRow = Math.max(0, Math.min(seatSel.Lv.rows - 1, selRow + dr)); selNum = Math.max(0, selNum + dn); applySeat(false); };
+  $('#rowPrev').addEventListener('click', () => stepSeat(-1, 0));
+  $('#rowNext').addEventListener('click', () => stepSeat(1, 0));
+  $('#numPrev').addEventListener('click', () => stepSeat(0, -1));
+  $('#numNext').addEventListener('click', () => stepSeat(0, 1));
+  $('#sCta').addEventListener('click', () => {
+    if (!seatSel || M.convs.has('ticket')) return;
+    M.visits.add('ticket'); M.convs.add('ticket'); M.inter++;
+    log(`전환 · 좌석 예매 ${$('#sId').textContent}`, true);
+    BOOTHS.find(b => b.id === 'ticket').ring.material.color.setHex(0xeaf6f3);
+    $('#sCta').disabled = true; $('#sCta').textContent = '예매 완료됨';
+    renderKPI();
+  });
+  function openSeat() {
+    $('#seat').hidden = false; $('#seatBtn').setAttribute('aria-pressed', 'true');
+    $('#map').hidden = true; if (coarse) $('#pad').hidden = true;
+    closePanel();
+    if (innerWidth < 760) setKpi(true);
+  }
+  function closeSeat() {
+    if (quadOn) setQuad(false);
+    $('#seat').hidden = true; $('#seatBtn').setAttribute('aria-pressed', 'false');
+    $('#map').hidden = !mapOn; if (coarse) $('#pad').hidden = false;
+  }
+  $('#seatBtn').addEventListener('click', () => { $('#seat').hidden ? openSeat() : closeSeat(); });
+  let mapOn = true;
+  $('#mapBtn').addEventListener('click', () => {
+    mapOn = !mapOn; $('#mapBtn').setAttribute('aria-pressed', String(mapOn));
+    if ($('#seat').hidden) $('#map').hidden = !mapOn;
+  });
+  $('#kpiBtn').addEventListener('click', () => {
+    const k = $('#kpi'), show = k.hidden; k.hidden = !show; $('#kpiBtn').setAttribute('aria-pressed', String(show));
+    if (show) setKpi(false);
+  });
+  // seat search: "212 E 7", "212구역 E열 7번", "플로어 C", "C"
+  $('#searchForm').addEventListener('submit', e => {
+    e.preventDefault();
+    const raw = $('#searchInput').value.trim();
+    const q = raw.toUpperCase().replace(/구역|열|번|석|층/g, ' ').replace(/\s+/g, ' ').trim();
+    let sec = null, r = null, n = null;
+    const fl = q.match(/^(?:플로어|FLOOR)?\s*([A-N])$/);
+    const m = q.match(/(\d{3})\s*([A-P])?\s*(\d+)?/);
+    if (fl) sec = SECTIONS.find(x => x.kind === 'floor' && x.id === fl[1]);
+    else if (m) {
+      sec = SECTIONS.find(x => x.id === m[1]) || null;
+      if (sec) { r = m[2] ? Math.min(sec.Lv.rows - 1, ROW_LETTERS.indexOf(m[2])) : null; n = m[3] ? +m[3] - 1 : null; }
+    }
+    if (!sec) { toast('<b>검색</b> 그런 구역을 찾지 못했어요. 예) 212 E 7 · 플로어 C'); return; }
+    if ($('#seat').hidden) openSeat();
+    if (sec.kind === 'floor') pickSection(sec);
+    else {
+      const row = r == null ? Math.min(4, sec.Lv.rows - 1) : r;
+      const len = seatsOf(sec, row).length;
+      pickSeat(sec, row, n == null ? Math.floor(len / 2) : Math.max(0, Math.min(len - 1, n)));
+      showTab('seats');
+    }
+    M.inter++; log(`좌석 검색 · ${raw}`); renderKPI();
+    $('#searchInput').blur();
+  });
+  $('#seatClose').addEventListener('click', closeSeat);
+
+  /* ---------- look around from the seat ---------- */
+  const LOOK_YAW = Math.PI / 3, LOOK_PITCH = 0.7;
+  const LOOK_DIRS = { front: [0, 0], left: [1, 0], right: [-1, 0], up: [0, 1], down: [0, -1] };
+  const LOOK_NAMES = { front: '무대', left: '좌측', right: '우측', up: '상단', down: '하단' };
+  let lookT = null, quadOn = false;
+  function markLook(dir) { document.querySelectorAll('[data-look]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.look === dir))); }
+  function lookTo(dir) {
+    const [dy, dp] = LOOK_DIRS[dir];
+    const by = P.baseYaw ?? P.yaw, bp = P.basePitch ?? P.pitch;
+    let ty = by + dy * LOOK_YAW;
+    while (ty - P.yaw > Math.PI) ty -= Math.PI * 2;
+    while (ty - P.yaw < -Math.PI) ty += Math.PI * 2;
+    lookT = { yaw: ty, pitch: Math.max(-1.3, Math.min(1.3, bp + dp * LOOK_PITCH)) };
+    markLook(dir);
+  }
+  document.querySelectorAll('[data-look]').forEach(b => b.addEventListener('click', () => {
+    if (quadOn && b.dataset.look !== 'front') setQuad(false);
+    lookTo(b.dataset.look); M.inter++;
+    if (seatSel) log(`시야 둘러보기 · ${secName(seatSel)} ${LOOK_NAMES[b.dataset.look]}`);
+    renderKPI();
+  }));
+  function setQuad(on) {
+    quadOn = on;
+    $('#quadBtn').setAttribute('aria-pressed', String(on));
+    $('#quadBtn').textContent = on ? '4분할 끄기' : '4분할 보기';
+    $('#quad').hidden = !on; $('#cross').hidden = on;
+    if (on) { lookTo('front'); P.yaw = lookT.yaw; P.pitch = lookT.pitch; lookT = null; setKpi(true); }
+    else { renderer.setScissorTest(false); resize(); }
+  }
+  $('#quadBtn').addEventListener('click', () => {
+    setQuad(!quadOn); M.inter++;
+    if (quadOn && seatSel) log(`4분할 시야 · ${secName(seatSel)}`);
+    renderKPI();
+  });
+  function quadRegion() {
+    // region in canvas coordinates (the canvas starts under the app bar)
+    const c = canvas.getBoundingClientRect(), cw = c.width, ch = c.height, seatEl = $('#seat');
+    if (!seatEl.hidden) {
+      const r = seatEl.getBoundingClientRect();
+      if (innerWidth >= 760) { const x = Math.round(r.right + 12 - c.left); return { x, y: 0, w: Math.max(200, cw - x), h: ch, top: c.top, ch }; }
+      return { x: 0, y: 0, w: cw, h: Math.max(160, Math.round(r.top - 8 - c.top)), top: c.top, ch };
+    }
+    return { x: 0, y: 0, w: cw, h: ch, top: c.top, ch };
+  }
+  function renderQuad() {
+    const R = quadRegion(), q = $('#quad');
+    q.style.left = R.x + 'px'; q.style.top = (R.top + R.y) + 'px'; q.style.width = R.w + 'px'; q.style.height = R.h + 'px';
+    renderer.setScissorTest(false); renderer.setViewport(0, 0, canvas.clientWidth, R.ch); renderer.clear();
+    renderer.setScissorTest(true);
+    const hw = Math.floor(R.w / 2), hh = Math.floor(R.h / 2);
+    camera.aspect = hw / hh; camera.updateProjectionMatrix();
+    [['left'], ['right'], ['up'], ['down']].forEach(([dir], i) => {
+      const [dy, dp] = LOOK_DIRS[dir];
+      const vx = R.x + (i % 2) * hw, top = R.y + Math.floor(i / 2) * hh, vy = R.ch - top - hh;
+      renderer.setViewport(vx, vy, hw, hh); renderer.setScissor(vx, vy, hw, hh);
+      camera.rotation.set(Math.max(-1.45, Math.min(1.45, P.pitch + dp * LOOK_PITCH)), P.yaw + dy * LOOK_YAW, 0);
+      renderer.render(scene, camera);
+    });
+    renderer.setScissorTest(false);
+  }
+
+  /* ---------- HUD controls ---------- */
+  document.querySelectorAll('[data-view]').forEach(btn => btn.addEventListener('click', () => {
+    if (seatSel) { P.eye = EYE; clearSeatHighlight(); }
+    goView(btn.dataset.view); M.inter++; log(`시점 이동 · ${btn.textContent}`); renderKPI();
+  }));
+  let showOn = true, stickBoost = 0;
+  $('#showBtn').addEventListener('click', () => {
+    showOn = !showOn;
+    const b = $('#showBtn'); b.setAttribute('aria-pressed', String(showOn)); $('#showLbl').textContent = showOn ? '공연 ON' : '공연 OFF';
+    movers.forEach(m => m.g.visible = showOn);
+    amb.intensity = showOn ? 0.55 : 1.0;
+    M.inter++; log(showOn ? '공연 연출 켬' : '공연 연출 끔'); renderKPI();
+  });
+  const kpi = $('#kpi');
+  function setKpi(collapsed) {
+    kpi.classList.toggle('collapsed', collapsed);
+    $('#kpiToggle').textContent = collapsed ? '펼치기' : '접기';
+    $('#kpiToggle').setAttribute('aria-expanded', String(!collapsed));
+  }
+  $('#kpiToggle').addEventListener('click', () => setKpi(!kpi.classList.contains('collapsed')));
+  setKpi(innerWidth < 760);
+
+  /* ---------- minimap ---------- */
+  const mapC = $('#mapCanvas'), mx = mapC.getContext('2d');
+  const MS = 2.36, MU = z => (z + 43) * MS, MV = x => (x + 41.5) * MS;
+  const base = document.createElement('canvas'); base.width = 440; base.height = 196;
+  { const c = base.getContext('2d');
+    c.strokeStyle = '#cfd4e0'; c.lineWidth = 2;
+    const rect = (x1, x2, z1, z2, fillC) => { c.beginPath(); c.rect(MU(z1), MV(x1), (z2 - z1) * MS, (x2 - x1) * MS); if (fillC) { c.fillStyle = fillC; c.fill(); } c.stroke(); };
+    rect(-AW_X, AW_X, AZ0, 27.5, '#eef0f5');
+    rect(-FX, FX, FZ0, FZ1, '#fff3dc');
+    c.fillStyle = '#3b4cf5'; c.fillRect(MU(-40.2), MV(-13), (FZ0 + 40.2) * MS, 26 * MS); c.fillRect(MU(FZ0), MV(-1.5), (-17 - FZ0) * MS, 3 * MS);
+    c.fillRect(MU(-17), MV(-3.5), 7.5 * MS, 7 * MS);
+    rect(-2.4, 2.4, FZ1, 28);
+    rect(-20, 20, 28, 46, '#eef0f5');
+    c.beginPath(); c.arc(MU(60), MV(0), 14 * MS, 0, Math.PI * 2); c.fillStyle = '#eef0f5'; c.fill(); c.stroke();
+    rect(-7, 7, 74, 136, '#ece8ff');
+  }
+  function drawMap() {
+    mx.clearRect(0, 0, 440, 196); mx.drawImage(base, 0, 0);
+    BOOTHS.forEach(b => {
+      mx.beginPath(); mx.arc(MU(b.pos[1]), MV(b.pos[0]), 5, 0, Math.PI * 2);
+      const hexc = '#' + b.color.toString(16).padStart(6, '0');
+      if (M.visits.has(b.id)) { mx.fillStyle = hexc; mx.fill(); } else { mx.strokeStyle = hexc; mx.lineWidth = 2; mx.stroke(); }
+    });
+    const u = MU(P.z), v = MV(P.x), fx = -Math.sin(P.yaw), fz = -Math.cos(P.yaw);
+    const a = Math.atan2(fx, fz);
+    mx.save(); mx.translate(u, v); mx.rotate(a);
+    mx.fillStyle = 'rgba(59,76,245,.18)'; mx.beginPath(); mx.moveTo(0, 0); mx.arc(0, 0, 34, -0.5, 0.5); mx.closePath(); mx.fill();
+    mx.fillStyle = '#18191c'; mx.beginPath(); mx.moveTo(10, 0); mx.lineTo(-6, 6); mx.lineTo(-3, 0); mx.lineTo(-6, -6); mx.closePath(); mx.fill();
+    mx.restore();
+  }
+
+  /* ---------- loop ---------- */
+  goView('street');
+  renderKPI();
+  let last = performance.now(), T = 0, scrAcc = 1, mapAcc = 1, kpiAcc = 0;
+  const fwd = new THREE.Vector2();
+  function update(dt) {
+    T += dt;
+    if (!document.hidden) M.dwell += dt;
+
+    // movement
+    const f = (keys.up ? 1 : 0) - (keys.down ? 1 : 0), s = (keys.right ? 1 : 0) - (keys.left ? 1 : 0);
+    if (f || s) {
+      P.eye = EYE; lookT = null; P.baseYaw = null; P.basePitch = null; if (seatSel) clearSeatHighlight();
+      const sp = (keys.run ? 8.5 : 4.2) * dt;
+      const sy = Math.sin(P.yaw), cy = Math.cos(P.yaw);
+      let dx = (-sy * f + cy * s), dz = (-cy * f - sy * s);
+      const n = Math.hypot(dx, dz) || 1; dx = dx / n * sp; dz = dz / n * sp;
+      const can = (x, z) => { const h = hAt(x, z); return !isNaN(h) && h - P.ground < 1.3 && P.ground - h < 2.0 ? h : null; };
+      let h, nx = P.x, nz = P.z;
+      if ((h = can(P.x + dx, P.z + dz)) !== null) { nx += dx; nz += dz; }
+      else if ((h = can(P.x + dx, P.z)) !== null) { nx += dx; }
+      else if ((h = can(P.x, P.z + dz)) !== null) { nz += dz; }
+      if (h !== null) {
+        M.dist += Math.hypot(nx - P.x, nz - P.z); P.x = nx; P.z = nz; P.ground = h;
+        if (activeView) { const v = VIEWS[activeView]; if (Math.hypot(P.x - v.p[0], P.z - v.p[1]) > 3) { activeView = null; document.querySelectorAll('[data-view]').forEach(b => b.setAttribute('aria-pressed', 'false')); } }
+      }
+    }
+    P.camY += (P.ground + P.eye - P.camY) * Math.min(1, dt * 10);
+    if (lookT) {
+      const k = Math.min(1, dt * (reduceMotion ? 30 : 5));
+      P.yaw += (lookT.yaw - P.yaw) * k; P.pitch += (lookT.pitch - P.pitch) * k;
+      if (Math.abs(lookT.yaw - P.yaw) < 0.002 && Math.abs(lookT.pitch - P.pitch) < 0.002) { P.yaw = lookT.yaw; P.pitch = lookT.pitch; lookT = null; }
+    }
+    camera.position.set(P.x, P.camY, P.z);
+    camera.rotation.set(P.pitch, P.yaw, 0);
+
+    // zones
+    const z = zoneOf(P.z);
+    M.zoneT[z] += document.hidden ? 0 : dt;
+    if (z !== M.zone) {
+      M.zone = z; $('#whereNow').textContent = ZONES[z];
+      if (!M.reached.has(z)) { M.reached.add(z); log(`여정 도달 · ${ZONES[z]}`); if (ARRIVE[z]) toast(ARRIVE[z]); }
+      renderKPI();
+    }
+    const lvl = z === 'arena' ? (P.ground > 11 ? 3 : P.ground > 5 ? 2 : 1) : 0;
+    if (lvl !== M.lvl) {
+      M.lvl = lvl; $('#whereNow').textContent = lvl ? `객석 ${lvl}층` : ZONES[z];
+      if (lvl > 1 && !M.lvls.has(lvl)) {
+        M.lvls.add(lvl); log(`${lvl}층 객석 도달`);
+        toast(lvl === 2 ? '<b>2층 객석</b> · 앞쪽 유리 난간 너머로 무대를 내려다봐요' : '<b>3층 객석</b> · 무대와 천장 그리드가 한눈에 보이는 최상층');
+      }
+    }
+
+    // nearest booth prompt
+    nearBooth = null;
+    let best = 4.4;
+    for (const b of BOOTHS) {
+      const vx = P.x - b.pos[0], vz = P.z - b.pos[1], d = Math.hypot(vx, vz);
+      if (d < best && (vx * b.front[0] + vz * b.front[1]) / d > 0.15) { best = d; nearBooth = b; }
+    }
+    const pr = $('#prompt');
+    if (nearBooth && $('#panel').hidden) { $('#promptText').textContent = `${nearBooth.name} 보기`; pr.hidden = false; } else pr.hidden = true;
+    if (openB) { const d = Math.hypot(P.x - openB.pos[0], P.z - openB.pos[1]); if (d > 9) closePanel(); }
+
+    // animation
+    const anim = reduceMotion ? 0.25 : 1;
+    const ta = T * anim;
+    BOOTHS.forEach((b, i) => { b.ring.rotation.y = ta * 1.4 + i; b.ring.position.y = 4.1 + Math.sin(ta * 2 + i) * 0.12; });
+    domeU.t.value = ta; auroraU.t.value = ta;
+    sculpt.rotation.y = ta * 0.3; sculpt.children.forEach((m, i) => { m.rotation.y = ta * (0.4 + i * 0.25); });
+    ringFloor.material.color.setHSL((0.45 + Math.sin(ta * 0.4) * 0.08 + 1) % 1, 0.8, 0.62);
+    ringMats.forEach(t => { t.offset.x = (t.offset.x + dt * 0.04 * anim) % 1; });
+
+    const sc = STICK_SCENES[((Math.floor(ta / 6) % STICK_SCENES.length) + STICK_SCENES.length) % STICK_SCENES.length];
+    if (showOn) {
+      stageL.color.setRGB(sc[0], sc[1], sc[2]); stageR.color.setRGB(sc[2], sc[0], sc[1]);
+      movers.forEach(m => {
+        m.g.rotation.z = Math.sin(ta * 0.7 + m.ph) * 0.42 + m.side * 0.06;
+        m.g.rotation.x = -0.32 - Math.sin(ta * 0.5 + m.ph * 1.3) * 0.28;
+        m.mat.color.setRGB(sc[0], sc[1], sc[2]); m.lamp.material.color.setRGB(sc[0], sc[1], sc[2]);
+      });
+    } else { stageL.color.setHex(0x8899aa); stageR.color.setHex(0x8899aa); }
+
+    // lightsticks
+    if (stickBoost > 0) stickBoost -= dt;
+    const N = stickPhase.length;
+    for (let i = 0; i < N; i++) {
+      let r, g, b;
+      if (showOn) {
+        const w = Math.sin(stickPhase[i] * 2.0 - ta * 2.4);
+        const k = 0.28 + 0.72 * Math.max(0, w) + (stickBoost > 0 ? 0.25 : 0);
+        r = sc[0] * k; g = sc[1] * k; b = sc[2] * k;
+      } else { r = g = b = 0.16; }
+      sCol[i * 3] = r; sCol[i * 3 + 1] = g; sCol[i * 3 + 2] = b;
+    }
+    sGeo.attributes.color.needsUpdate = true;
+
+    scrAcc += dt;
+    if (scrAcc > (showOn ? 1 / 15 : 1)) { scrAcc = 0; drawScreen(ta, showOn); }
+    if (toastT > 0) { toastT -= dt; if (toastT <= 0) $('#toast').hidden = true; }
+    mapAcc += dt; if (mapAcc > 0.12) { mapAcc = 0; drawMap(); }
+    kpiAcc += dt; if (kpiAcc > 0.5) { kpiAcc = 0; renderKPI(); }
+  }
+  function frame(now) {
+    if (typeof now !== 'number') now = performance.now();
+    const dt = Math.max(0, Math.min(0.05, (now - last) / 1000)); last = now;
+    update(dt);
+    if (quadOn) renderQuad(); else renderer.render(scene, camera);
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+})();
+</script>
+
+</body></html>
