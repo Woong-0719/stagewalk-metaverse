@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0c0a1d">
+<meta name="theme-color" content="#ffffff">
 <title>명화라이브홀 메타버스</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <meta name="author" content="박진우 (경기대학교 경영학과)">
@@ -11,7 +11,7 @@
 <!-- 명화라이브홀 메타버스 · 기획 및 제작: 박진우 (경기대학교 경영학과) · © 2026 무단 복제·재배포 금지 -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans+KR:wght@400;500;700&family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap">
 </head>
 <body>
 <style>
@@ -194,9 +194,181 @@ button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   .panel { left: var(--gl); width: auto; }
 }
 @media (prefers-reduced-motion: reduce) { .live-dot { animation: none; } }
+
+/* ===== STAGE WALK app skin (matches the Inspire Arena page): white app bar, chip tabs, white cards, pill tab bar ===== */
+:root {
+  --panel: #ffffff; --panel-solid: #ffffff; --line: #e7e9ef; --fg: #17181c; --muted: #7b818d;
+  --accent: #3b4cf5; --accent-2: #7a5af8; --ok: #12a150;
+  --sunken: #f4f5f8; --blue-soft: #eef0ff; --black: #18191c; --seat-cur: #ff8a3d;
+  --shadow: 0 10px 30px rgba(22, 26, 48, 0.12), 0 1px 3px rgba(22, 26, 48, 0.06);
+  --f-display: "Noto Sans KR", "Apple SD Gothic Neo", sans-serif;
+  --f-body: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  --f-mono: "Noto Sans KR", "Apple SD Gothic Neo", sans-serif;
+  --hdr: calc(118px + env(safe-area-inset-top, 0px));
+  --ftr: calc(92px + env(safe-area-inset-bottom, 0px));
+  color-scheme: light;
+}
+body { background: #fff; letter-spacing: -0.01em; }
+[hidden] { display: none !important; }
+button, a, input { font-family: var(--f-body); }
+#scene { inset: var(--hdr) 0 0 0; height: calc(100% - var(--hdr)); }
+.glass { background: #fff; border: 1px solid #eef0f4; border-radius: 22px; box-shadow: var(--shadow); backdrop-filter: none; -webkit-backdrop-filter: none; }
+.brand { display: none; }
+button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* app bar */
+.appbar { position: fixed; top: 0; left: 0; right: 0; z-index: 8; background: #fff; padding: calc(10px + env(safe-area-inset-top, 0px)) var(--gr) 0 var(--gl); display: grid; gap: 10px; border-bottom: 1px solid #f0f1f5; }
+.appbar-row { display: flex; align-items: center; gap: 18px; min-width: 0; }
+.wordmark { flex: none; text-decoration: none; color: var(--accent); font: 900 24px/1 var(--f-display); letter-spacing: -0.04em; display: flex; flex-direction: column; }
+.wordmark span { font-size: 10.5px; letter-spacing: .3em; font-weight: 800; margin-top: 3px; }
+.search { flex: 1; min-width: 0; max-width: 620px; display: flex; align-items: center; height: 46px; border: 2px solid var(--accent); border-radius: 999px; padding: 0 8px 0 20px; background: #fff; }
+.search input { flex: 1; min-width: 0; border: 0; outline: none; background: transparent; font: 500 15px var(--f-body); color: var(--fg); }
+.search input::placeholder { color: #8a8f99; }
+.search button { flex: none; width: 36px; height: 36px; border: 0; background: transparent; color: var(--accent); cursor: pointer; display: grid; place-items: center; border-radius: 50%; }
+.search button:hover { background: var(--blue-soft); }
+.applinks { margin-left: auto; display: flex; gap: 6px; flex: none; }
+.applinks a { font: 700 13px var(--f-body); color: var(--fg); text-decoration: none; padding: 8px 12px; border-radius: 999px; background: var(--sunken); white-space: nowrap; }
+.applinks a:hover { background: var(--blue-soft); color: var(--accent); }
+.appbar .views { pointer-events: auto; display: flex; align-items: center; gap: 2px; padding: 0 0 10px; overflow-x: auto; max-width: 100%; background: none; border: 0; box-shadow: none; border-radius: 0; }
+.appbar .views button { flex: none; border: 0; background: transparent; color: #6b707b; font: 700 15px var(--f-body); padding: 8px 14px; border-radius: 999px; cursor: pointer; white-space: nowrap; }
+.appbar .views button:hover { color: var(--fg); background: transparent; }
+.appbar .views button[aria-pressed="true"] { background: var(--black); color: #fff; font-weight: 700; }
+.appbar .views .sep { width: 1px; height: 18px; background: #d9dce3; margin: 0 8px; flex: none; }
+.appbar .views .grp { flex: none; font: 800 15px var(--f-body); color: var(--fg); padding: 0 6px 0 2px; position: relative; }
+.appbar .views .grp::after { content: ""; position: absolute; top: -2px; right: -1px; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+
+/* KPI card */
+.kpi { top: calc(var(--hdr) + 12px); padding: 16px 18px; width: min(300px, calc(100vw - 32px)); max-height: calc(100% - var(--hdr) - var(--ftr) - 24px); overflow: auto; }
+.kpi-head h2 { font-size: 16px; font-weight: 800; letter-spacing: -0.02em; }
+.icon-btn { background: var(--sunken); border: 0; color: #4b505b; font: 700 12.5px var(--f-body); border-radius: 999px; padding: 6px 12px; white-space: nowrap; }
+.icon-btn:hover { background: var(--blue-soft); color: var(--accent); border: 0; }
+.icon-btn:disabled { color: #c3c7cf; cursor: default; background: var(--sunken); }
+.kpi-grid dt, .site-stats dt { font-size: 12px; }
+.kpi-grid dd { font-weight: 800; font-size: 20px; letter-spacing: -0.02em; }
+.kpi-grid .hl dd { color: var(--accent); }
+.meter { background: var(--sunken); height: 5px; }
+.meter i { background: var(--accent); }
+.site-stats { background: var(--sunken); border: 0; border-radius: 14px; padding: 10px 12px; }
+.site-stats dd { color: var(--accent); font-weight: 800; }
+.log-title { font-size: 13px; font-weight: 800; letter-spacing: 0; text-transform: none; color: var(--fg); margin-top: 16px; }
+.log { font-size: 13px; gap: 6px; }
+.log time { font-size: 12px; }
+
+/* seat bar = location notice row */
+.seatbar { top: calc(var(--hdr) + 12px); left: var(--gl); max-width: min(560px, calc(100vw - 360px)); padding: 7px 8px; gap: 6px; border-radius: 18px; font-size: 14px; background: rgba(244,245,248,.97); border: 0; box-shadow: 0 4px 16px rgba(22,26,48,.08); }
+.seatbar .lbl { font-weight: 500; }
+.seatbar .lbl b { color: #fff; background: var(--accent); font: 700 12.5px var(--f-body); padding: 5px 11px; border-radius: 999px; margin-right: 4px; }
+.seatbar .icon-btn { background: #fff; }
+.seatbar .primary { background: var(--accent); color: #fff; }
+.seatbar .primary:hover { background: #2f3fe0; color: #fff; }
+.icon-btn.hub-back { margin-left: 0; }
+
+/* share + seat map + booth cards */
+.sharebox { top: calc(var(--hdr) + 72px); padding: 18px; }
+.sharebox h4 { font-size: 16px; font-weight: 800; }
+.share-row input { background: var(--sunken); border: 0; color: var(--fg); border-radius: 10px; }
+.share-qr .qr { background: var(--sunken); }
+.ticket-cta { background: var(--accent); color: #fff; border-radius: 14px; font-weight: 800; }
+.seatmap { bottom: var(--ftr); max-height: calc(100% - var(--hdr) - var(--ftr) - 80px); padding: 20px; }
+.seatmap h3 { font: 900 21px var(--f-display); letter-spacing: -0.03em; }
+.seatmap .tabs { gap: 4px; padding: 4px; background: var(--sunken); border-radius: 999px; display: inline-flex; flex-wrap: wrap; }
+.seatmap .tabs button { border: 0; color: #6b707b; font: 700 13.5px var(--f-body); padding: 7px 14px; }
+.seatmap .tabs button[aria-pressed="true"] { background: var(--black); color: #fff; }
+.stage-cue { background: var(--black); color: #fff; border-radius: 999px; padding: 7px; font: 800 12px var(--f-body); letter-spacing: .12em; }
+.seat-rows { background: var(--sunken); border-radius: 16px; padding: 10px 8px; }
+.srow .rl { font: 700 11px var(--f-body); }
+.seat { background: #4a5cf6; border-radius: 4px; }
+.seat:hover { background: #7d89ff; }
+.seat.seen { background: #b3bbff; }
+.seat.cur { background: var(--seat-cur); box-shadow: 0 0 0 2px var(--black); }
+.sp-zone { background: #fff; border: 1px dashed #c9cede; color: var(--muted); }
+.sp-zone b { color: var(--fg); }
+.legend { font-size: 12px; }
+.panel { bottom: var(--ftr); padding: 22px; max-height: calc(100% - var(--hdr) - var(--ftr) - 24px); }
+.panel .kind { font: 700 12px var(--f-body); letter-spacing: 0; text-transform: none; }
+.panel h3 { font: 800 24px/1.25 var(--f-display); letter-spacing: -0.03em; }
+.panel p { color: #3c414b; font-size: 14.5px; line-height: 1.65; }
+.items { background: var(--sunken); border: 0; border-radius: 16px; padding: 4px 14px; }
+.items li:last-child { border-bottom: 0; }
+.items li span:last-child { font-weight: 800; }
+.cta { background: var(--accent); color: #fff; border-radius: 16px; padding: 15px; font: 800 15px var(--f-body); }
+.cta:disabled { background: var(--blue-soft); color: var(--accent); }
+.done-msg { color: var(--accent); }
+
+/* centre marks, toast, pad, credit */
+.cross { top: calc(var(--hdr) + (100% - var(--hdr)) / 2); background: rgba(255,255,255,.9); }
+.prompt { top: calc(var(--hdr) + (100% - var(--hdr)) / 2 + 36px); }
+.prompt button { background: var(--black); color: #fff; padding: 8px 18px 8px 8px; font-size: 15px; box-shadow: var(--shadow); }
+.prompt kbd { background: #fff; color: var(--black); border-radius: 999px; padding: 4px 9px; font-weight: 800; }
+.toast { top: calc(var(--hdr) + 72px); padding: 10px 18px; font-size: 14px; border-radius: 18px; font-weight: 500; }
+.pad { bottom: var(--ftr); }
+.pad button { background: #fff; border: 1px solid var(--line); color: var(--fg); border-radius: 16px; box-shadow: 0 4px 14px rgba(22,26,48,.12); }
+.pad button:active { background: var(--accent); color: #fff; }
+.credit { bottom: var(--ftr); color: var(--muted); text-shadow: none; background: rgba(255,255,255,.94); padding: 8px 12px; border-radius: 14px; }
+.credit .visits { color: var(--fg); }
+.credit .visits b { color: var(--accent); }
+.hint { position: fixed; z-index: 5; right: var(--gr); bottom: calc(26px + env(safe-area-inset-bottom, 0px)); max-width: 300px; line-height: 1.7; background: rgba(255,255,255,.94); padding: 8px 12px; border-radius: 14px; color: var(--muted); text-shadow: none; }
+.hint kbd { border: 1px solid var(--line); background: #fff; color: var(--fg); font-weight: 700; }
+
+/* bottom tab bar */
+.tabbar { position: fixed; z-index: 6; left: 50%; transform: translateX(-50%); bottom: calc(12px + env(safe-area-inset-bottom, 0px)); width: min(560px, calc(100vw - 32px));
+  display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; padding: 6px; background: rgba(255,255,255,.97); border: 1px solid #e3e5ea; border-radius: 999px; box-shadow: 0 8px 28px rgba(22,26,48,.14); }
+.tabbar > * { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; height: 56px; border: 0; background: transparent; color: var(--fg); font: 700 12.5px var(--f-body); text-decoration: none; border-radius: 999px; cursor: pointer; }
+.tabbar svg { width: 26px; height: 26px; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.tabbar > *:hover { background: var(--sunken); }
+.tabbar .home { background: #ececef; }
+.tabbar [aria-pressed="true"], .tabbar [aria-expanded="true"] { color: var(--accent); }
+.tabbar [aria-pressed="true"] svg.fillable { fill: currentColor; }
+.tabbar .show[aria-pressed="true"] { background: #ececef; color: var(--accent); }
+
+@media (max-width: 1400px) { .hint { display: none; } }
+@media (max-width: 1100px) { .credit { display: none; } }
+@media (max-width: 760px) {
+  :root { --hdr: calc(108px + env(safe-area-inset-top, 0px)); --ftr: calc(84px + env(safe-area-inset-bottom, 0px)); }
+  .appbar-row { gap: 12px; }
+  .wordmark { font-size: 18px; }
+  .wordmark span { font-size: 8.5px; }
+  .search { height: 42px; padding-left: 14px; }
+  .search input { font-size: 14px; }
+  .applinks { display: none; }
+  .appbar .views button { font-size: 14px; padding: 7px 12px; }
+  .tabbar > * { height: 50px; font-size: 11.5px; }
+  .tabbar svg { width: 23px; height: 23px; }
+  .seatbar { right: var(--gr); max-width: none; top: calc(var(--hdr) + 10px); }
+  .seatbar .hub-back, .seatbar #seatMapBtn, .seatbar #shareBtn { display: none; }
+  .seatbar .lbl { flex: 1; text-align: center; }
+  .kpi { top: calc(var(--hdr) + 66px); }
+  .kpi:not(.collapsed) { top: calc(var(--hdr) + 66px); }
+  .sharebox { top: calc(var(--hdr) + 66px); }
+  .toast { top: calc(var(--hdr) + 120px); }
+}
 </style>
 
 <canvas id="scene" aria-label="명화라이브홀 1인칭 3D 공연장"></canvas>
+
+<header class="appbar">
+  <div class="appbar-row">
+    <a class="wordmark" href="./" aria-label="공연장 선택으로 이동">MYUNGHWA<span>LIVE HALL</span></a>
+    <form class="search" id="searchForm" role="search">
+      <label for="searchInput" hidden>좌석 찾기</label>
+      <input id="searchInput" type="search" placeholder="좌석 찾기 · 예) 2층 정면 2열 21번, 1층 왼쪽 5 10" autocomplete="off" enterkeyhint="search">
+      <button type="submit" aria-label="좌석 찾기"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></svg></button>
+    </form>
+    <nav class="applinks" aria-label="공연장 바꾸기"><a href="./">공연장 선택</a><a href="inspire.html">인스파이어 아레나</a></nav>
+  </div>
+  <nav class="views" aria-label="시점 이동">
+    <button type="button" data-view="front">1층 스탠딩</button>
+    <button type="button" data-view="midL">1층 왼쪽 좌석</button>
+    <button type="button" data-view="mid">1층 오른쪽 좌석</button>
+    <button type="button" data-view="entry">1층 입구 · 부스</button>
+    <span class="sep" aria-hidden="true"></span>
+    <span class="grp">2·3층</span>
+    <button type="button" data-view="sideL">2층 왼쪽 사이드</button>
+    <button type="button" data-view="side">2층 오른쪽 사이드</button>
+    <button type="button" data-view="rear" aria-pressed="true">2층 정면석</button>
+    <button type="button" data-view="third">3층 지정석</button>
+  </nav>
+</header>
 
 <div class="hud brand">
   <div class="eyebrow">Concept prototype · 디지털 마케팅</div>
@@ -265,7 +437,7 @@ button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   <div class="tabs" id="seatTabs" role="group" aria-label="구역"></div>
   <div class="stage-cue" id="stageCue">STAGE · 무대</div>
   <div class="seat-rows" id="seatRows"></div>
-  <div class="legend"><span><i style="background:#2c5bb5"></i>좌석</span><span><i style="background:#7d97d8"></i>시야 확인함</span><span><i style="background:var(--accent)"></i>지금 앉은 자리</span></div>
+  <div class="legend"><span><i style="background:#4a5cf6"></i>좌석</span><span><i style="background:#b3bbff"></i>시야 확인함</span><span><i style="background:var(--seat-cur)"></i>지금 앉은 자리</span></div>
 </section>
 
 <div class="hud prompt" id="prompt" hidden><button type="button" id="promptBtn"><kbd>E</kbd><span id="promptText">부스 보기</span></button></div>
@@ -290,21 +462,15 @@ button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 <footer class="hud credit"><span class="visits" id="visits" aria-live="polite">누적 방문자 <b id="visitCount">—</b>명</span><strong>© 2026 박진우</strong> · 경기대학교 경영학과<span class="note">비공식 학생 프로젝트 · 무단 복제·재배포 금지</span></footer>
 
-<div class="hud bar">
-  <nav class="views glass" aria-label="시점 이동">
-    <button type="button" data-view="front">1층 스탠딩</button>
-    <button type="button" data-view="midL">1층 왼쪽 좌석</button>
-    <button type="button" data-view="mid">1층 오른쪽 좌석</button>
-    <button type="button" data-view="entry">1층 입구 · 부스</button>
-    <button type="button" data-view="sideL">2층 왼쪽 사이드</button>
-    <button type="button" data-view="side">2층 오른쪽 사이드</button>
-    <button type="button" data-view="rear" aria-pressed="true">2층 정면석</button>
-    <button type="button" data-view="third">3층 지정석</button>
-    <span class="sep" aria-hidden="true"></span>
-    <button type="button" class="show" id="showBtn" aria-pressed="true">공연 연출 ON</button>
-  </nav>
-  <div class="hint"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> 이동 · <kbd>Shift</kbd> 빠르게 · 좌석에선 <kbd>W</kbd><kbd>S</kbd> 앞뒤 줄 <kbd>A</kbd><kbd>D</kbd> 옆자리 · 의자 클릭으로 착석</div>
-</div>
+<div class="hint"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> 이동 · <kbd>Shift</kbd> 빠르게<br>좌석에선 <kbd>W</kbd><kbd>S</kbd> 앞뒤 줄 · <kbd>A</kbd><kbd>D</kbd> 옆자리 · 의자 클릭으로 착석</div>
+
+<nav class="tabbar" aria-label="메뉴">
+  <button type="button" id="tbSeat" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 11V6a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v5"/><path d="M4 11h16v4H4z"/><path d="M6 15v5M18 15v5"/></svg><span>좌석표</span></button>
+  <button type="button" id="tbShare" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg><span>링크·예매</span></button>
+  <button type="button" class="show" id="showBtn" aria-pressed="true"><svg class="fillable" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5 14.4 9l5.6.5-4.3 3.8 1.3 5.7L12 16l-5 3 1.3-5.7L4 9.5 9.6 9z"/></svg><span id="showLbl">공연 ON</span></button>
+  <button type="button" id="tbKpi" aria-pressed="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span>지표</span></button>
+  <a href="./"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="7" height="7" rx="2"/><rect x="13" y="4" width="7" height="7" rx="2"/><rect x="4" y="13" width="7" height="7" rx="2"/><rect x="13" y="13" width="7" height="7" rx="2"/></svg><span>공연장</span></a>
+</nav>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -381,8 +547,9 @@ button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   const camera = new THREE.PerspectiveCamera(72, 1, 0.1, 200);
   camera.rotation.order = 'YXZ';
   function resize() {
-    renderer.setSize(innerWidth, innerHeight, false);
-    camera.aspect = innerWidth / innerHeight;
+    const cw = canvas.clientWidth || innerWidth, ch = canvas.clientHeight || innerHeight;
+    renderer.setSize(cw, ch, false);
+    camera.aspect = cw / ch;
     camera.fov = camera.aspect < 0.8 ? 84 : 72;
     camera.updateProjectionMatrix();
   }
@@ -864,6 +1031,7 @@ button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
   const keys = {}, pad = {};
   addEventListener('keydown', e => {
+    if (e.target && e.target.closest && e.target.closest('input')) return;
     keys[e.code] = true;
     if (e.code === 'KeyE' && nearBooth) openPanel(nearBooth);
     if (e.code === 'Escape') { closePanel(); seatMap.hidden = true; }
@@ -992,7 +1160,7 @@ button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   $('#showBtn').addEventListener('click', e => {
     showOn = !showOn;
     e.currentTarget.setAttribute('aria-pressed', String(showOn));
-    e.currentTarget.textContent = showOn ? '공연 연출 ON' : '공연 연출 OFF';
+    $('#showLbl').textContent = showOn ? '공연 ON' : '공연 OFF';
   });
 
   /* ---------- movement ---------- */
@@ -1185,7 +1353,7 @@ button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
     if (cur) cur.scrollIntoView({ block: 'nearest', inline: 'center' });
   }
   function setSeatMap(open) {
-    seatMap.hidden = !open; seatMapBtn.setAttribute('aria-expanded', String(open));
+    seatMap.hidden = !open; seatMapBtn.setAttribute('aria-expanded', String(open)); $('#tbSeat').setAttribute('aria-expanded', String(open));
     if (open) { closePanel(); if (currentSeat) mapSec = tabOf(currentSeat.sec); renderSeatMap(); }
   }
   seatMapBtn.addEventListener('click', () => setSeatMap(seatMap.hidden));
@@ -1210,7 +1378,7 @@ button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
     } else qr.textContent = 'QR을 불러오는 중이에요';
   }
   function setShare(open) {
-    shareBox.hidden = !open; shareBtn.setAttribute('aria-expanded', String(open));
+    shareBox.hidden = !open; shareBtn.setAttribute('aria-expanded', String(open)); $('#tbShare').setAttribute('aria-expanded', String(open));
     if (open) { renderShare(); if (currentSeat) logEvent(`좌석 링크 열기 · ${seatLabel(currentSeat)}`); }
   }
   shareBtn.addEventListener('click', () => setShare(shareBox.hidden));
@@ -1238,6 +1406,31 @@ button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   const linked = seatFromHash();
   if (linked) { sitSeat(linked, { instant: true, silent: true }); metrics.seats.add(linked.key); logEvent(`링크로 입장 · ${seatLabel(linked)}`); }
   else sitSeat(findSeat('2C', 2, 21), { instant: true, silent: true });
+
+  /* ---------- app shell: tab bar + seat search ---------- */
+  $('#tbSeat').addEventListener('click', () => setSeatMap(seatMap.hidden));
+  $('#tbShare').addEventListener('click', () => setShare(shareBox.hidden));
+  $('#tbKpi').addEventListener('click', () => {
+    const show = kpi.hidden; kpi.hidden = !show; $('#tbKpi').setAttribute('aria-pressed', String(show));
+    if (show) setKpi(false);
+  });
+  const SEC_WORDS = [['1L', ['1층왼쪽', '1l']], ['1R', ['1층오른쪽', '1r']], ['2SL', ['2층왼쪽', '왼쪽사이드', '2sl']], ['2SR', ['2층오른쪽', '오른쪽사이드', '2sr']],
+    ['3C', ['3층', '3c']], ['2C', ['2층정면', '2층', '2c', '정면']]];
+  $('#searchForm').addEventListener('submit', e => {
+    e.preventDefault();
+    const raw = $('#searchInput').value.trim(), q = raw.toLowerCase().replace(/\s+/g, '');
+    let secId = null, rest = q;
+    for (const [id, words] of SEC_WORDS) { const w = words.find(w => q.includes(w)); if (w) { secId = id; rest = q.replace(w, ''); break; } }
+    if (!secId) { toast('구역을 찾지 못했어요 · 예) 2층 정면 2열 21번'); return; }
+    const sec = SEC[secId], nums = (rest.match(/\d+/g) || []).map(Number);
+    const rowKeys = Object.keys(sec.rows).map(Number).sort((a, b) => a - b);
+    const row = nums[0] && sec.rows[nums[0]] ? nums[0] : rowKeys[0];
+    const arr = sec.rows[row];
+    const num = nums[1] ? Math.max(1, Math.min(arr.length, nums[1])) : Math.ceil(arr.length / 2);
+    sitSeat(arr[num - 1]);
+    metrics.inter++; logEvent(`좌석 검색 · ${raw}`); renderKPI();
+    $('#searchInput').blur();
+  });
 
   try { console.info('%c명화라이브홀 메타버스 · ' + CREDIT, 'color:#ffb347;font-weight:700'); } catch (_) {}
   showSiteVisits();
