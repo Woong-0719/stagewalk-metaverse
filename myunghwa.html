@@ -1,0 +1,1252 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0c0a1d">
+<title>명화라이브홀 메타버스</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="author" content="박진우 (경기대학교 경영학과)">
+<meta name="copyright" content="© 2026 박진우. All rights reserved.">
+<!-- 명화라이브홀 메타버스 · 기획 및 제작: 박진우 (경기대학교 경영학과) · © 2026 무단 복제·재배포 금지 -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap">
+</head>
+<body>
+<style>
+/* layout: full-bleed first-person 3D hall; HUD floats at the corners like a venue's house screens */
+:root {
+  --bg: #0c0a1d;
+  --panel: rgba(21, 17, 46, 0.88);
+  --panel-solid: #17133a;
+  --line: rgba(190, 176, 255, 0.18);
+  --fg: #f3efff;
+  --muted: #a9a2cf;
+  --accent: #ffb347;      /* stage key light, amber */
+  --accent-2: #8b7bff;    /* house wash, violet */
+  --ok: #5fd4a0;
+  --f-display: "Black Han Sans", "IBM Plex Sans KR", "Apple SD Gothic Neo", sans-serif;
+  --f-body: "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", monospace;
+  --gl: max(16px, env(safe-area-inset-left, 0px));
+  --gr: max(16px, env(safe-area-inset-right, 0px));
+  --gt: calc(12px + env(safe-area-inset-top, 0px));
+  --gb: calc(12px + env(safe-area-inset-bottom, 0px));
+  color-scheme: dark;
+}
+html, body { height: 100%; margin: 0; overflow: hidden; }
+body {
+  background: var(--bg); color: var(--fg); font-family: var(--f-body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  -webkit-font-smoothing: antialiased;
+}
+#scene { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; cursor: grab; }
+#scene:active { cursor: grabbing; }
+
+.hud { position: fixed; z-index: 5; }
+.glass { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+
+/* brand */
+.brand { top: var(--gt); left: var(--gl); pointer-events: none; text-shadow: 0 2px 18px rgba(0,0,0,.6); }
+.brand .eyebrow { font-family: var(--f-mono); font-size: 11px; letter-spacing: .14em; color: var(--accent); text-transform: uppercase; }
+.brand h1 { font-family: var(--f-display); font-weight: 400; font-size: 34px; line-height: 1.05; margin: 4px 0 2px; letter-spacing: .01em; }
+.brand p { margin: 0; font-size: 13px; color: var(--muted); }
+
+/* KPI */
+.kpi { top: var(--gt); right: var(--gr); width: min(290px, calc(100vw - 32px)); padding: 12px 14px 12px; }
+.kpi-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.kpi-head h2 { margin: 0; font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+.live-dot { width: 8px; height: 8px; border-radius: 50%; background: #ff5d73; box-shadow: 0 0 0 0 rgba(255,93,115,.6); animation: pulse 1.6s infinite; }
+@keyframes pulse { 70% { box-shadow: 0 0 0 7px rgba(255,93,115,0); } 100% { box-shadow: 0 0 0 0 rgba(255,93,115,0); } }
+.icon-btn { background: transparent; border: 1px solid var(--line); color: var(--muted); font: 500 12px var(--f-body); border-radius: 8px; padding: 4px 8px; cursor: pointer; }
+.icon-btn:hover { color: var(--fg); border-color: var(--muted); }
+.kpi-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 14px; margin-top: 12px; }
+.kpi-grid div { min-width: 0; }
+.kpi-grid dt { font-size: 11px; color: var(--muted); }
+.kpi-grid dd { margin: 2px 0 0; font-family: var(--f-mono); font-weight: 600; font-size: 18px; font-variant-numeric: tabular-nums; }
+.kpi-grid dd small { font-size: 11px; color: var(--muted); font-weight: 500; }
+.kpi-grid .hl dd { color: var(--accent); }
+.meter { height: 4px; background: var(--line); border-radius: 2px; margin-top: 5px; overflow: hidden; }
+.meter i { display: block; height: 100%; width: 0; background: var(--ok); transition: width .4s; }
+.log-title { margin: 14px 0 6px; font-size: 11px; color: var(--muted); letter-spacing: .08em; text-transform: uppercase; font-family: var(--f-mono); }
+.log { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; font-size: 12px; }
+.log li { display: flex; gap: 8px; min-width: 0; }
+.log time { font-family: var(--f-mono); color: var(--muted); flex: none; font-variant-numeric: tabular-nums; }
+.log span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.log .empty { color: var(--muted); }
+.kpi.collapsed .kpi-body { display: none; }
+.kpi .mini { display: none; font-family: var(--f-mono); font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.kpi.collapsed .mini { display: block; margin-top: 6px; }
+
+/* crosshair + prompt */
+.cross { left: 50%; top: 50%; width: 6px; height: 6px; margin: -3px 0 0 -3px; border-radius: 50%; background: rgba(255,255,255,.75); box-shadow: 0 0 0 2px rgba(0,0,0,.35); pointer-events: none; }
+.prompt { left: 50%; top: calc(50% + 36px); transform: translateX(-50%); }
+.prompt button { display: flex; align-items: center; gap: 10px; background: var(--fg); color: #15122e; border: 0; border-radius: 999px; padding: 9px 16px 9px 10px; font: 700 14px var(--f-body); cursor: pointer; box-shadow: 0 8px 30px rgba(0,0,0,.45); white-space: nowrap; }
+.prompt kbd { font-family: var(--f-mono); font-size: 12px; background: #15122e; color: var(--fg); border-radius: 6px; padding: 2px 7px; }
+
+/* bottom bar */
+.bar { left: var(--gl); right: var(--gr); bottom: var(--gb); display: flex; align-items: center; justify-content: space-between; gap: 12px; pointer-events: none; }
+.views { pointer-events: auto; display: flex; gap: 6px; padding: 6px; overflow-x: auto; max-width: 100%; scrollbar-width: none; }
+.views::-webkit-scrollbar { display: none; }
+.views button { flex: none; background: transparent; border: 0; color: var(--muted); font: 500 13px var(--f-body); padding: 8px 12px; border-radius: 9px; cursor: pointer; white-space: nowrap; }
+.views button:hover { color: var(--fg); background: rgba(255,255,255,.06); }
+.views button[aria-pressed="true"] { background: var(--accent); color: #241400; font-weight: 700; }
+.views .sep { width: 1px; background: var(--line); margin: 6px 2px; flex: none; }
+.views .show[aria-pressed="true"] { background: var(--accent-2); color: #fff; }
+.hint { pointer-events: none; font-size: 12px; color: var(--muted); text-align: right; text-shadow: 0 1px 8px rgba(0,0,0,.8); }
+.hint kbd { font-family: var(--f-mono); font-size: 11px; border: 1px solid var(--line); border-radius: 5px; padding: 1px 5px; color: var(--fg); }
+
+/* booth panel */
+.panel { right: var(--gr); bottom: calc(72px + env(safe-area-inset-bottom, 0px)); width: min(360px, calc(100vw - 32px)); max-height: calc(100% - 190px); overflow: auto; padding: 18px 18px 16px; }
+.panel .kind { font-family: var(--f-mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; }
+.panel h3 { font-family: var(--f-display); font-weight: 400; font-size: 26px; margin: 6px 0 8px; text-wrap: balance; }
+.panel p { margin: 0 0 14px; font-size: 14px; line-height: 1.6; color: #d6d0f2; }
+.items { list-style: none; padding: 0; margin: 0 0 16px; border-top: 1px solid var(--line); }
+.items li { display: flex; justify-content: space-between; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+.items li span:last-child { font-family: var(--f-mono); font-variant-numeric: tabular-nums; color: var(--fg); }
+.panel-actions { display: flex; gap: 8px; }
+.cta { flex: 1; border: 0; border-radius: 10px; padding: 12px; font: 700 14px var(--f-body); cursor: pointer; color: #1b1100; background: var(--accent); }
+.cta:disabled { background: rgba(95,212,160,.18); color: var(--ok); cursor: default; }
+.ghost { background: transparent; border: 1px solid var(--line); color: var(--fg); border-radius: 10px; padding: 12px 14px; font: 500 14px var(--f-body); cursor: pointer; }
+.done-msg { margin-top: 12px; font-size: 13px; color: var(--ok); line-height: 1.5; }
+.panel .close { position: absolute; top: 12px; right: 12px; }
+
+/* touch pad */
+.pad { left: var(--gl); bottom: calc(80px + env(safe-area-inset-bottom, 0px)); display: grid; grid-template-columns: repeat(3, 46px); grid-template-rows: repeat(2, 46px); gap: 6px; }
+.pad button { background: var(--panel); border: 1px solid var(--line); color: var(--fg); border-radius: 12px; font-size: 18px; touch-action: none; user-select: none; -webkit-user-select: none; }
+.pad button:active { background: var(--accent-2); }
+.pad .up { grid-column: 2; grid-row: 1; }
+.pad .left { grid-column: 1; grid-row: 2; }
+.pad .down { grid-column: 2; grid-row: 2; }
+.pad .right { grid-column: 3; grid-row: 2; }
+
+.credit { right: var(--gr); bottom: calc(66px + env(safe-area-inset-bottom, 0px)); pointer-events: none; text-align: right; font-size: 11.5px; line-height: 1.45; color: var(--muted); text-shadow: 0 1px 8px rgba(0,0,0,.85); }
+.credit strong { color: var(--fg); font-weight: 700; }
+.credit .note { display: block; font-size: 10.5px; opacity: .8; }
+.credit .visits { display: block; margin-bottom: 3px; font-size: 12.5px; color: var(--fg); }
+.credit .visits b { color: var(--accent); font-family: var(--f-mono); font-weight: 600; font-variant-numeric: tabular-nums; }
+@media (max-width: 700px) { .credit { bottom: calc(70px + env(safe-area-inset-bottom, 0px)); max-width: calc(100vw - 200px); } }
+.seatbar { top: calc(var(--gt) + 92px); left: var(--gl); display: flex; align-items: center; gap: 6px; padding: 6px 6px 6px 12px; max-width: min(480px, calc(100vw - 350px)); font-size: 13px; }
+.seatbar .lbl { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.seatbar .lbl b { color: var(--accent); font-weight: 700; }
+.seatbar .icon-btn { flex: none; }
+.seatbar .primary { background: var(--accent); color: #241400; border-color: transparent; font-weight: 700; }
+.sharebox { top: calc(var(--gt) + 146px); left: var(--gl); width: min(340px, calc(100vw - 32px)); padding: 14px; z-index: 7; }
+.sharebox h4 { margin: 0 0 2px; font-size: 14px; }
+.sharebox .sub { margin: 0 0 10px; font-size: 12px; color: var(--muted); line-height: 1.5; }
+.share-row { display: flex; gap: 6px; }
+.share-row input { flex: 1; min-width: 0; background: rgba(255,255,255,.06); border: 1px solid var(--line); border-radius: 8px; color: var(--fg); font: 500 12px var(--f-mono); padding: 8px; }
+.share-qr { display: flex; gap: 12px; align-items: center; margin-top: 12px; }
+.share-qr .qr { flex: none; width: 104px; height: 104px; padding: 6px; background: #fff; border-radius: 8px; }
+.share-qr .qr img, .share-qr .qr canvas { width: 92px !important; height: 92px !important; display: block; }
+.share-qr p { margin: 0; font-size: 12px; color: var(--muted); line-height: 1.55; }
+.ticket-cta { display: flex; justify-content: center; align-items: center; gap: 6px; margin-top: 12px; padding: 11px; border-radius: 10px; background: var(--accent); color: #241400; font: 700 14px var(--f-body); text-decoration: none; }
+.ticket-cta:hover { filter: brightness(1.06); }
+.ticket-note { margin: 6px 0 0; font-size: 11px; color: var(--muted); text-align: center; }
+@media (max-width: 700px) { .sharebox { top: calc(var(--gt) + 146px); } }
+.seatmap { left: 50%; transform: translateX(-50%); bottom: calc(72px + env(safe-area-inset-bottom, 0px)); width: min(780px, calc(100vw - 32px)); max-height: min(64vh, calc(100% - 210px)); overflow: auto; padding: 16px 16px 14px; z-index: 7; }
+.seatmap-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.seatmap h3 { margin: 0; font-family: var(--f-display); font-weight: 400; font-size: 22px; }
+.seatmap .sub { margin: 4px 0 0; font-size: 12.5px; color: var(--muted); line-height: 1.5; }
+.tabs { display: flex; gap: 6px; flex-wrap: wrap; margin: 12px 0; }
+.tabs button { background: transparent; border: 1px solid var(--line); color: var(--muted); font: 500 12.5px var(--f-body); border-radius: 999px; padding: 6px 11px; cursor: pointer; }
+.tabs button:hover { color: var(--fg); }
+.tabs button[aria-pressed="true"] { background: var(--accent-2); border-color: transparent; color: #fff; font-weight: 700; }
+.stage-cue { text-align: center; font: 600 11px var(--f-mono); letter-spacing: .24em; color: #241400; background: var(--accent); border-radius: 6px; padding: 4px; margin-bottom: 10px; }
+.seat-rows { display: grid; gap: 4px; overflow-x: auto; padding-bottom: 6px; }
+.srow { display: flex; align-items: center; gap: 3px; }
+.srow .rl { flex: none; width: 34px; font: 500 11px var(--f-mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+.seat { flex: none; width: 15px; height: 15px; padding: 0; border: 0; border-radius: 4px 4px 2px 2px; background: #2c5bb5; cursor: pointer; }
+.seat:hover { background: #9db4ff; }
+.seat.seen { background: #7d97d8; }
+.seat.cur { background: var(--accent); box-shadow: 0 0 0 2px var(--fg); }
+.legend { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 10px; font-size: 11.5px; color: var(--muted); }
+.legend i { display: inline-block; width: 11px; height: 11px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
+@media (pointer: coarse) { .seat { width: 19px; height: 19px; } .srow { gap: 4px; } }
+.sideplan { display: grid; grid-template-columns: auto minmax(110px, 1fr) auto; column-gap: 12px; row-gap: 6px; align-items: start; }
+.sp-head { font: 700 11.5px var(--f-body); text-align: center; white-space: nowrap; }
+.sp-head small { display: flex; justify-content: space-around; font: 500 10px var(--f-mono); color: var(--muted); margin-top: 3px; }
+.scol { display: grid; }
+.scol .seat { width: auto; height: auto; }
+.sp-mid { display: flex; flex-direction: column; }
+.sp-zone { display: grid; place-items: center; text-align: center; padding: 4px; border: 1px dashed var(--line); border-radius: 8px; background: transparent; color: var(--muted); font: 500 12px var(--f-body); cursor: pointer; }
+.sp-zone + .sp-zone { margin-top: -1px; }
+.sp-zone:hover { color: var(--fg); border-color: var(--muted); }
+.sp-zone b { display: block; color: var(--fg); font-weight: 700; }
+@media (max-width: 700px) { .seatbar { top: calc(var(--gt) + 92px); right: var(--gr); max-width: none; } }
+.site-stats { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line); display: grid; grid-template-columns: 1fr 1fr; gap: 8px 14px; }
+.site-stats dt { font-size: 11px; color: var(--muted); }
+.site-stats dd { margin: 2px 0 0; font-family: var(--f-mono); font-weight: 600; font-size: 16px; font-variant-numeric: tabular-nums; color: var(--ok); }
+.site-stats .note { grid-column: 1 / -1; font-size: 11px; color: var(--muted); line-height: 1.45; }
+.toast { left: 50%; top: calc(50% - 70px); transform: translateX(-50%); padding: 8px 14px; font-size: 13px; white-space: nowrap; }
+
+button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.icon-btn.hub-back { flex: none; text-decoration: none; display: inline-flex; align-items: center; margin-left: -6px; }
+
+@media (max-width: 700px) {
+  .brand h1 { font-size: 24px; }
+  .brand p { display: none; }
+  .hint { display: none; }
+  .kpi { width: auto; max-width: calc(100vw - 210px); min-width: 140px; }
+  .kpi:not(.collapsed) { width: min(290px, calc(100vw - 32px)); max-width: none; top: calc(70px + env(safe-area-inset-top, 0px)); }
+  .panel { left: var(--gl); width: auto; }
+}
+@media (prefers-reduced-motion: reduce) { .live-dot { animation: none; } }
+</style>
+
+<canvas id="scene" aria-label="명화라이브홀 1인칭 3D 공연장"></canvas>
+
+<div class="hud brand">
+  <div class="eyebrow">Concept prototype · 디지털 마케팅</div>
+  <h1>명화라이브홀</h1>
+  <p>1층 앞쪽 스탠딩 · 1층 뒤쪽과 2·3층 지정석 · 좌석표에서 자리마다 시야를 미리 볼 수 있어요</p>
+</div>
+
+<section class="hud kpi glass" id="kpi" aria-label="마케팅 지표">
+  <div class="kpi-head">
+    <h2><span class="live-dot" aria-hidden="true"></span>마케팅 지표</h2>
+    <button class="icon-btn" id="kpiToggle" type="button" aria-expanded="true">접기</button>
+  </div>
+  <div class="mini" id="kpiMini">체류 00:00 · 좌석 0 · 전환 0</div>
+  <div class="kpi-body">
+    <dl class="kpi-grid">
+      <div><dt>체류시간</dt><dd id="kDwell">00:00</dd></div>
+      <div><dt>시야 확인 좌석</dt><dd><span id="kSeats">0</span> <small>석</small></dd></div>
+      <div><dt>부스 방문</dt><dd><span id="kVisit">0</span><small> / 4</small></dd><div class="meter"><i id="kVisitBar"></i></div></div>
+      <div><dt>인터랙션</dt><dd id="kInter">0</dd></div>
+      <div class="hl"><dt>전환 (구매·쿠폰·알림)</dt><dd id="kConv">0</dd></div>
+      <div class="hl"><dt>방문 대비 전환율</dt><dd><span id="kRate">0</span><small> %</small></dd></div>
+    </dl>
+    <dl class="site-stats" id="siteStats">
+      <div><dt>이 자리 시야 조회</dt><dd id="gSeat">—</dd></div>
+      <p class="note" id="gNote">방문 기록 준비 중</p>
+    </dl>
+    <div class="log-title">이벤트 로그</div>
+    <ul class="log" id="log"><li class="empty">아직 기록된 행동이 없어요. 부스로 걸어가 보세요.</li></ul>
+  </div>
+</section>
+
+<div class="hud cross" aria-hidden="true"></div>
+<div class="hud seatbar glass" id="seatbar">
+  <a class="icon-btn hub-back" href="./">← 공연장</a>
+  <button class="icon-btn" type="button" id="seatPrev" aria-label="왼쪽 옆자리">◀</button>
+  <span class="lbl" id="seatLabel" aria-live="polite">좌석을 골라 시야를 확인해 보세요</span>
+  <button class="icon-btn" type="button" id="seatNext" aria-label="오른쪽 옆자리">▶</button>
+  <button class="icon-btn primary" type="button" id="seatMapBtn" aria-expanded="false">좌석표</button>
+  <button class="icon-btn" type="button" id="shareBtn" aria-expanded="false">링크·예매</button>
+</div>
+
+<section class="hud sharebox glass" id="sharebox" hidden aria-label="좌석 링크와 예매">
+  <button class="icon-btn close" type="button" id="shareClose" style="position:absolute;top:10px;right:10px">닫기</button>
+  <h4 id="shareTitle">이 자리 시야 링크</h4>
+  <p class="sub">링크나 QR로 들어오면 이 좌석에 앉은 시야로 바로 열려요. 예매 페이지 상품상세·공지에 넣을 수 있어요.</p>
+  <div class="share-row">
+    <input id="shareUrl" type="text" readonly aria-label="좌석 시야 링크">
+    <button class="icon-btn primary" type="button" id="copyBtn">복사</button>
+  </div>
+  <div class="share-qr">
+    <div class="qr" id="shareQr" aria-label="좌석 시야 QR코드"></div>
+    <p>QR을 저장해 예매 페이지 상세 이미지나 포스터에 넣으면, 휴대폰으로 찍어서 바로 이 자리 시야를 볼 수 있어요.</p>
+  </div>
+  <a class="ticket-cta" id="ticketLink" href="https://tickets.interpark.com/" target="_blank" rel="noopener">이 공연 예매하러 가기 ↗</a>
+  <p class="ticket-note">예매처 새 탭으로 열려요 · 실제 공연 상품 주소로 바꿔 쓸 수 있어요</p>
+</section>
+
+<section class="hud seatmap glass" id="seatmap" hidden aria-label="좌석표">
+  <div class="seatmap-head">
+    <div>
+      <h3>좌석별 시야 보기</h3>
+      <p class="sub">자리를 누르면 그 좌석에 앉은 눈높이로 이동해요. 3D 화면의 의자를 직접 눌러도 앉을 수 있어요.</p>
+    </div>
+    <button class="icon-btn" type="button" id="seatmapClose">닫기</button>
+  </div>
+  <div class="tabs" id="seatTabs" role="group" aria-label="구역"></div>
+  <div class="stage-cue" id="stageCue">STAGE · 무대</div>
+  <div class="seat-rows" id="seatRows"></div>
+  <div class="legend"><span><i style="background:#2c5bb5"></i>좌석</span><span><i style="background:#7d97d8"></i>시야 확인함</span><span><i style="background:var(--accent)"></i>지금 앉은 자리</span></div>
+</section>
+
+<div class="hud prompt" id="prompt" hidden><button type="button" id="promptBtn"><kbd>E</kbd><span id="promptText">부스 보기</span></button></div>
+<div class="hud toast glass" id="toast" hidden></div>
+
+<section class="hud panel glass" id="panel" hidden aria-live="polite">
+  <button class="icon-btn close" type="button" id="panelClose">닫기</button>
+  <div class="kind" id="pKind"></div>
+  <h3 id="pTitle"></h3>
+  <p id="pDesc"></p>
+  <ul class="items" id="pItems"></ul>
+  <div class="panel-actions"><button class="cta" type="button" id="pCta"></button></div>
+  <div class="done-msg" id="pDone" hidden></div>
+</section>
+
+<div class="hud pad" id="pad" hidden>
+  <button class="up" data-dir="up" aria-label="앞으로">▲</button>
+  <button class="left" data-dir="left" aria-label="왼쪽">◀</button>
+  <button class="down" data-dir="down" aria-label="뒤로">▼</button>
+  <button class="right" data-dir="right" aria-label="오른쪽">▶</button>
+</div>
+
+<footer class="hud credit"><span class="visits" id="visits" aria-live="polite">누적 방문자 <b id="visitCount">—</b>명</span><strong>© 2026 박진우</strong> · 경기대학교 경영학과<span class="note">비공식 학생 프로젝트 · 무단 복제·재배포 금지</span></footer>
+
+<div class="hud bar">
+  <nav class="views glass" aria-label="시점 이동">
+    <button type="button" data-view="front">1층 스탠딩</button>
+    <button type="button" data-view="midL">1층 왼쪽 좌석</button>
+    <button type="button" data-view="mid">1층 오른쪽 좌석</button>
+    <button type="button" data-view="entry">1층 입구 · 부스</button>
+    <button type="button" data-view="sideL">2층 왼쪽 사이드</button>
+    <button type="button" data-view="side">2층 오른쪽 사이드</button>
+    <button type="button" data-view="rear" aria-pressed="true">2층 정면석</button>
+    <button type="button" data-view="third">3층 지정석</button>
+    <span class="sep" aria-hidden="true"></span>
+    <button type="button" class="show" id="showBtn" aria-pressed="true">공연 연출 ON</button>
+  </nav>
+  <div class="hint"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> 이동 · <kbd>Shift</kbd> 빠르게 · 좌석에선 <kbd>W</kbd><kbd>S</kbd> 앞뒤 줄 <kbd>A</kbd><kbd>D</kbd> 옆자리 · 의자 클릭으로 착석</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+/*!
+ * 명화라이브홀 메타버스 — 1인칭 공연장 마케팅 인터페이스
+ * © 2026 박진우 (경기대학교 경영학과). All rights reserved.
+ * 기획: 박진우 · 무단 복제·재배포·상업적 이용을 금합니다.
+ */
+(() => {
+  const CREDIT = '© 2026 박진우 · 경기대학교 경영학과';
+
+  /* ---------- 방문자·페이지 조회수 기록 (GoatCounter) ----------
+   * goatcounter.com에서 만든 코드 이름을 아래에 넣으면 기록이 시작돼요.
+   * 예: 주소가 https://myunghwa-live.goatcounter.com 이면 'myunghwa-live'
+   * 시점·좌석·부스를 볼 때마다 가상 페이지(/view/…, /seat/…, /booth/…)로 조회수가 쌓여요. */
+  const GC_CODE = 'YOUR-CODE';
+  const GC_ON = GC_CODE && GC_CODE !== 'YOUR-CODE' && /^https?:$/.test(location.protocol);
+  const GC_BASE = `https://${GC_CODE}.goatcounter.com`;
+  const gcQueue = [];
+  if (GC_ON) {
+    const s = document.createElement('script');
+    s.async = true; s.src = 'https://gc.zgo.at/count.js';
+    s.setAttribute('data-goatcounter', GC_BASE + '/count');
+    s.addEventListener('load', () => { while (gcQueue.length) track(...gcQueue.shift()); });
+    document.head.appendChild(s);
+  }
+  // 앱 안에서 본 화면 하나하나를 '페이지 조회'로 기록
+  function track(path, title) {
+    if (!GC_ON) return;
+    const gc = window.goatcounter;
+    if (!gc || typeof gc.count !== 'function') { gcQueue.push([path, title]); return; }
+    try { gc.count({ path: '/' + path, title: title || path }); } catch (_) {}
+  }
+  // 공개 카운터에서 숫자 읽기 (GoatCounter 설정에서 'Allow adding visitor counts on your website'를 켜야 보여요)
+  const gcCache = {};
+  function readCount(path) {
+    if (!GC_ON) return Promise.resolve(null);
+    if (gcCache[path] && Date.now() - gcCache[path].t < 60000) return Promise.resolve(gcCache[path].v);
+    return fetch(`${GC_BASE}/counter/${encodeURIComponent(path)}.json`, { cache: 'no-store' })
+      .then(r => r.ok ? r.json() : null)
+      .then(j => { const v = j && j.count != null ? String(j.count) : null; gcCache[path] = { t: Date.now(), v }; return v; })
+      .catch(() => null);
+  }
+  function showSiteVisits() {
+    const note = document.getElementById('gNote');
+    if (!GC_ON) { note.textContent = '방문 기록이 꺼져 있어요 · 사용방법.txt의 GoatCounter 설정을 마치면 켜져요'; document.getElementById('visits').textContent = '방문자 집계 준비 중'; return; }
+    note.textContent = '방문·조회수는 몇 분~30분 간격으로 갱신돼요';
+    readCount(location.pathname).then(v => { if (v != null) document.getElementById('visitCount').textContent = v; });
+  }
+  function showSeatViews(seatKey) {
+    const el = document.getElementById('gSeat');
+    if (!GC_ON || !seatKey) { el.textContent = '—'; return; }
+    readCount('/seat/' + seatKey).then(v => { el.textContent = v != null ? v + '회' : '첫 조회'; });
+  }
+  // 예매 페이지 주소: 실제 공연이 정해지면 그 공연 상품 페이지 주소로 바꾸세요
+  const TICKET_URL = 'https://tickets.interpark.com/';
+  // 공유 링크의 기본 주소: Netlify에 올리면 그 주소가 자동으로 쓰여요
+  const PUBLIC_URL = 'https://claude.ai/artifact/1bBSSsjyWLAEsFeGRCsBuC';
+  const $ = s => document.querySelector(s);
+  const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const canvas = $('#scene');
+
+  /* ---------- renderer ---------- */
+  const coarse = matchMedia('(pointer: coarse)').matches;
+  const devDPR = window.devicePixelRatio || 1;
+  let dpr = Math.min(devDPR, coarse ? 1.25 : 1.5);
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: devDPR < 1.5, powerPreference: 'high-performance' });
+  renderer.setPixelRatio(dpr);
+  renderer.outputEncoding = THREE.sRGBEncoding;
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x07070c);
+  scene.fog = new THREE.Fog(0x0b0b14, 32, 85);
+  const camera = new THREE.PerspectiveCamera(72, 1, 0.1, 200);
+  camera.rotation.order = 'YXZ';
+  function resize() {
+    renderer.setSize(innerWidth, innerHeight, false);
+    camera.aspect = innerWidth / innerHeight;
+    camera.fov = camera.aspect < 0.8 ? 84 : 72;
+    camera.updateProjectionMatrix();
+  }
+  addEventListener('resize', resize); resize();
+
+  // Lambert (vertex lighting) is far cheaper than PBR and looks the same at this scale
+  const M = (color, o = {}) => { const { roughness, metalness, ...rest } = o; return new THREE.MeshLambertMaterial(Object.assign({ color }, rest)); };
+  const B = color => new THREE.MeshBasicMaterial({ color });
+  const box = (w, h, d, mat, x, y, z) => { const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat); m.position.set(x, y, z); scene.add(m); return m; };
+  const dummy = new THREE.Object3D();
+  // many identical static parts → one draw call each
+  function inst(geo, mat, list) {
+    const m = new THREE.InstancedMesh(geo, mat, list.length);
+    list.forEach(([x, y, z], i) => { dummy.position.set(x, y, z); dummy.rotation.set(0, 0, 0); dummy.scale.set(1, 1, 1); dummy.updateMatrix(); m.setMatrixAt(i, dummy.matrix); });
+    m.frustumCulled = false; scene.add(m); return m;
+  }
+  const hex = n => '#' + n.toString(16).padStart(6, '0');
+  let seed = 11; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+
+  /* ---------- canvas signs ---------- */
+  const redraws = [];
+  function makeTex(w, h, draw) {
+    const c = document.createElement('canvas'); c.width = w; c.height = h;
+    const tex = new THREE.CanvasTexture(c); tex.encoding = THREE.sRGBEncoding; tex.anisotropy = 4;
+    const redraw = () => { draw(c.getContext('2d'), w, h); tex.needsUpdate = true; };
+    redraw(); redraws.push(redraw);
+    return tex;
+  }
+  function fitFont(g, text, family, size, maxW) {
+    do { g.font = size + 'px ' + family; size -= 2; } while (g.measureText(text).width > maxW && size > 12);
+  }
+
+  /* ---------- lights: house lights on, like the photo ---------- */
+  scene.add(new THREE.HemisphereLight(0xd6d9ff, 0x1a1822, 0.95));
+  const sun = new THREE.DirectionalLight(0xffe4c8, 0.55); sun.position.set(2, 10, 6); scene.add(sun);
+  const wash = new THREE.PointLight(0x7d6bff, 1.2, 26); wash.position.set(0, 6, -14); scene.add(wash);
+
+  /* ---------- hall shell 30 x 40 x 12 m ---------- */
+  const W = 30, D = 40, H = 12;
+  const shell = new THREE.Mesh(new THREE.BoxGeometry(W, H, D), M(0x1b2134, { side: THREE.BackSide, roughness: 0.95 }));
+  shell.position.set(0, H / 2, 0); scene.add(shell);
+  const floor = new THREE.Mesh(new THREE.PlaneGeometry(W, D), M(0x24232c, { roughness: 0.7 }));
+  floor.rotation.x = -Math.PI / 2; floor.position.y = 0.002; scene.add(floor);
+  const ceil = new THREE.Mesh(new THREE.PlaneGeometry(W, D), M(0x060609, { roughness: 1 }));
+  ceil.rotation.x = Math.PI / 2; ceil.position.y = H - 0.05; scene.add(ceil);
+  // lower wall panels (navy, under the side balconies)
+  [-1, 1].forEach(s => box(0.12, 4.5, 30, M(0x222c47), s * 14.92, 2.25, 0));
+
+  // ceiling lighting trusses + fixtures
+  const trussMat = M(0x3c3d48, { metalness: 0.8, roughness: 0.35 });
+  const fixPos = [], lensPos = [];
+  [-12, -7, -1.5, 4, 9.5].forEach((z, row) => {
+    box(26, 0.28, 0.28, trussMat, 0, 10.6, z);
+    box(26, 0.28, 0.28, trussMat, 0, 10.6, z + 0.6);
+    for (let x = -10.5; x <= 10.5; x += row === 0 ? 2.1 : 3.5) { fixPos.push([x, 10.2, z + 0.3]); lensPos.push([x, 9.98, z + 0.3]); }
+  });
+  inst(new THREE.CylinderGeometry(0.17, 0.22, 0.42, 8), M(0x15151b), fixPos);
+  const lensGeo = new THREE.CircleGeometry(0.15, 10); lensGeo.rotateX(Math.PI / 2);
+  inst(lensGeo, new THREE.MeshBasicMaterial({ color: 0xfff0d2, side: THREE.DoubleSide }), lensPos);
+  [-1, 1].forEach(s => box(0.25, 0.25, 26, trussMat, s * 10, 11.2, 0));
+
+  /* ---------- stage ---------- */
+  box(24, 1.2, 6, M(0x1d1b26), 0, 0.6, -17);
+  box(24, 0.05, 0.05, B(0xffb347), 0, 1.22, -14.02);
+  box(2.2, 5.5, 1.8, M(0x0f0d16), -11, 3.95, -16.4);
+  box(2.2, 5.5, 1.8, M(0x0f0d16), 11, 3.95, -16.4);
+  box(25, 0.35, 0.35, trussMat, 0, 9.6, -15.5);
+
+  // metal barricade (grey panels with vertical bars, like the front row in the photo)
+  const barMat = M(0xa9abb6, { metalness: 0.75, roughness: 0.35 });
+  const barFill = M(0x8d909c, { metalness: 0.6, roughness: 0.5, transparent: true, opacity: 0.55 });
+  box(24, 0.07, 0.07, barMat, 0, 1.18, -13.2);
+  box(24, 0.07, 0.07, barMat, 0, 0.12, -13.2);
+  box(24, 0.85, 0.03, barFill, 0, 0.62, -13.2);
+  const barPos = []; for (let x = -11.9; x <= 11.9; x += 0.4) barPos.push([x, 0.62, -13.18]);
+  inst(new THREE.BoxGeometry(0.035, 1.1, 0.035), barMat, barPos);
+  const feetPos = []; for (let x = -11; x <= 11; x += 2.2) feetPos.push([x, 0.05, -12.8]);
+  inst(new THREE.BoxGeometry(0.08, 0.06, 0.9), barMat, feetPos);
+
+  // LED wall
+  let showOn = true;
+  const ledTex = makeTex(1024, 448, (g, w, h) => drawLED(g, w, h, 0));
+  const ledCanvas = ledTex.image, lg = ledCanvas.getContext('2d');
+  box(16.6, 7.6, 0.2, M(0x0b0a14), 0, 5.6, -19.85);
+  const led = new THREE.Mesh(new THREE.PlaneGeometry(16, 7), new THREE.MeshBasicMaterial({ map: ledTex }));
+  led.position.set(0, 5.6, -19.7); scene.add(led);
+  function drawLED(g, w, h, t) {
+    const slide = ((Math.floor(Math.max(0, t) / 6) % 4) + 4) % 4;
+    const pal = [['#2a1660', '#7d3cff'], ['#1c1550', '#8b7bff'], ['#3a1d08', '#ff9a3c'], ['#0f1a2e', '#2c5bb5']][slide];
+    const grd = g.createLinearGradient(0, 0, w, h); grd.addColorStop(0, pal[0]); grd.addColorStop(1, pal[1]);
+    g.fillStyle = grd; g.fillRect(0, 0, w, h);
+    const bars = 48, bw = w / bars;
+    for (let i = 0; i < bars; i++) {
+      const v = showOn ? (0.25 + 0.75 * Math.abs(Math.sin(t * 3.1 + i * 0.55) * Math.cos(t * 1.7 + i * 0.21))) : 0.12;
+      g.fillStyle = 'rgba(255,255,255,0.16)'; g.fillRect(i * bw + 2, h - v * 150, bw - 4, v * 150);
+    }
+    const lines = [
+      ['2026 WINTER LIVE', '명화라이브홀', '오늘 입장하신 관객 여러분 환영합니다'],
+      ['SPONSOR', '루미 스파클링', '오른쪽 협찬 부스 방문 시 20% 쿠폰 지급'],
+      ['OFFICIAL MD', '굿즈 스토어 오픈', '왼쪽 부스에서 응원봉 · 투어 티셔츠 미리 담기'],
+      ['CREATED BY', '박진우', '경기대학교 경영학과 · 디지털 마케팅 프로젝트'],
+    ][slide];
+    g.textAlign = 'center';
+    g.font = '600 30px "IBM Plex Mono", monospace'; g.fillStyle = 'rgba(255,255,255,.75)'; g.fillText(lines[0], w / 2, 110);
+    g.fillStyle = '#fff'; fitFont(g, lines[1], '"Black Han Sans", sans-serif', 130, w - 120); g.fillText(lines[1], w / 2, 240);
+    g.font = '500 32px "IBM Plex Sans KR", sans-serif'; g.fillStyle = 'rgba(255,255,255,.88)'; g.fillText(lines[2], w / 2, 300);
+    g.textAlign = 'left';
+  }
+
+  // performers
+  const performers = [];
+  [-4.5, 0, 4.5].forEach((x, i) => {
+    const grp = new THREE.Group();
+    const dark = M(0x0d0b19, { roughness: 0.4, metalness: 0.4 });
+    const body = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.34, 1.5, 12), dark); body.position.y = 0.75;
+    const head = new THREE.Mesh(new THREE.SphereGeometry(0.2, 14, 10), dark); head.position.y = 1.72;
+    const stand = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 1.5, 6), M(0x777290, { metalness: 0.9, roughness: 0.2 }));
+    stand.position.set(0, 0.75, 0.45);
+    grp.add(body, head, stand); grp.position.set(x, 1.2, -17.2); scene.add(grp);
+    performers.push({ grp, phase: i * 1.3 });
+  });
+
+  // stage light cones
+  const cones = [];
+  const coneGeo = new THREE.ConeGeometry(2.3, 10, 24, 1, true); coneGeo.translate(0, -5, 0);
+  [-9, -5.4, -1.8, 1.8, 5.4, 9].forEach((x, i) => {
+    const mat = new THREE.MeshBasicMaterial({ color: i % 2 ? 0x8b7bff : 0xffb347, transparent: true, opacity: 0.08, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide });
+    const c = new THREE.Mesh(coneGeo, mat); c.position.set(x, 9.4, -15.5); scene.add(c);
+    cones.push({ c, phase: i * 0.9, dir: i % 2 ? 1 : -1 });
+  });
+
+  /* ---------- side balconies (2F, both walls) ---------- */
+  const railMat = M(0x8a8d99, { metalness: 0.8, roughness: 0.3 });
+  const glassMat = M(0x9fb0d0, { transparent: true, opacity: 0.18, roughness: 0.1, metalness: 0.3, depthWrite: false });
+  const balPos = [], pillarPos = [], signPos = [], colPos = [], sideSeatPos = [];
+  [-1, 1].forEach(s => {
+    box(3.4, 0.5, 27, M(0x262838), s * 13.3, 4.75, 0.5);
+    box(0.12, 0.55, 27, M(0x14151f), s * 11.6, 4.72, 0.5);                  // slab edge
+    box(0.06, 0.06, 27, railMat, s * 11.68, 6.05, 0.5);                     // top rail
+    box(0.04, 1.0, 27, glassMat, s * 11.7, 5.5, 0.5);                       // glass
+    for (let z = -12.8; z <= 13.8; z += 1.3) balPos.push([s * 11.68, 5.52, z]);
+    box(1.0, 0.35, 27, M(0x232536), s * 13.15, 5.175, 0.5);                 // riser for row 2
+    for (let z = -12.3; z <= 13.6; z += 0.55) {
+      sideSeatPos.push([s * 12.3, 5.0, z]);
+      sideSeatPos.push([s * 13.15, 5.35, z]);
+    }
+    [-9.5, -3, 3.5, 10].forEach(z => {
+      pillarPos.push([s * 14.3, 8.5, z]); signPos.push([s * 13.74, 7.2, z]); colPos.push([s * 14.5, 2.25, z]);
+    });
+  });
+  inst(new THREE.BoxGeometry(0.04, 1.05, 0.04), railMat, balPos);
+  const sideSeatMesh = inst(new THREE.BoxGeometry(0.42, 0.5, 0.46), M(0x2c5bb5), sideSeatPos.map(([x, y, z]) => [x, y + 0.25, z]));
+  inst(new THREE.BoxGeometry(1.1, 7, 1.1), M(0x343746), pillarPos);          // balcony pillars
+  inst(new THREE.BoxGeometry(0.02, 0.4, 0.32), B(0xf2f2f2), signPos);
+  inst(new THREE.BoxGeometry(0.6, 4.5, 0.6), M(0x2b2e3c), colPos);           // columns below
+  box(0.7, 0.26, 0.06, B(0x2bff7a), 12.6, 3.6, 14.9);                       // exit sign
+
+  /* ---------- rear: 2F raked seating + 3F with red LED band ---------- */
+  box(24, 3.9, 0.3, M(0x5c6074), 0, 1.95, 14.95);                           // light fascia under 2F
+  box(24, 0.06, 0.06, railMat, 0, 4.95, 15.05);
+  box(24, 0.95, 0.03, glassMat, 0, 4.45, 15.07);
+  const stepTop = i => 3.9 + i * 0.5;
+  for (let i = 0; i < 5; i++) {
+    const top = stepTop(i);
+    box(24, top - 3.4, 1, M(0x232536), 0, (top + 3.4) / 2, 15.6 + i);
+  }
+  const seatPos = [];
+  for (let i = 0; i < 5; i++) for (let x = -11.2; x <= 11.2; x += 0.56) seatPos.push([x, stepTop(i), 15.75 + i]);
+  const rearSeatMesh = inst(new THREE.BoxGeometry(0.48, 0.5, 0.42), M(0x2c5bb5), seatPos.map(([x, y, z]) => [x, y + 0.25, z + 0.1]));
+  box(24, 0.4, 2.6, M(0x1f2030), 0, 7.8, 18.7);                             // 3F slab
+  const step3 = i => 8.0 + i * 0.45;
+  for (let i = 1; i < 3; i++) box(24, step3(i) - 7.95, 0.8, M(0x232536), 0, (step3(i) + 7.95) / 2, 17.8 + i * 0.8);
+  const seat3Pos = [];
+  for (let i = 0; i < 3; i++) for (let x = -11.2; x <= 11.2; x += 0.56) seat3Pos.push([x, step3(i), 17.85 + i * 0.8]);
+  const seat3Mesh = inst(new THREE.BoxGeometry(0.48, 0.5, 0.42), M(0x2c5bb5), seat3Pos.map(([x, y, z]) => [x, y + 0.25, z + 0.1]));
+  box(24, 0.42, 0.08, B(0xff2b3f), 0, 7.72, 17.38);                         // red LED band
+  box(24, 0.06, 0.06, railMat, 0, 8.95, 17.45);
+  box(24, 0.95, 0.03, glassMat, 0, 8.45, 17.47);
+
+  /* ---------- 1F: front third standing, back two-thirds seated ---------- */
+  const SEAT_Z0 = -3.6, SEAT_ROWS = 16, SEAT_ROW_GAP = 0.9, AISLE = 0.85, SEAT_XMAX = 10.2;
+  const floorSeatPos = [];
+  const SEAT_BASE = 0.8, SEAT_RISE = 0.14;
+  const rowY = r => SEAT_BASE + r * SEAT_RISE;                            // 80cm platform, +14cm per row
+  for (let r = 0; r < SEAT_ROWS; r++) {
+    const z = SEAT_Z0 + r * SEAT_ROW_GAP, y = rowY(r);
+    if (y > 0) [-1, 1].forEach(s => box(SEAT_XMAX + 0.3 - AISLE, y, SEAT_ROW_GAP, M(0x2a2836), s * (AISLE + SEAT_XMAX + 0.3) / 2, y / 2, z + 0.1));
+    for (let k = 0; 1.12 + k * 0.56 <= SEAT_XMAX; k++) {
+      const x = 1.12 + k * 0.56;
+      floorSeatPos.push([x, y, z], [-x, y, z]);
+    }
+  }
+  const floorSeatMesh = inst(new THREE.BoxGeometry(0.48, 0.5, 0.42), M(0x2c5bb5), floorSeatPos.map(([x, y, z]) => [x, y + 0.25, z + 0.1]));
+  const inSeatBlock = (x, z) => z > -4.4 && z < SEAT_Z0 + SEAT_ROWS * SEAT_ROW_GAP - 0.3 && Math.abs(x) > AISLE && Math.abs(x) < SEAT_XMAX + 0.3;
+  // stepped centre aisle: stairs up from the standing area, steps along the rows, stairs down at the back
+  const BLOCK_FRONT = SEAT_Z0 - 0.35, BLOCK_BACK = SEAT_Z0 + SEAT_ROWS * SEAT_ROW_GAP - 0.35;
+  const STAIR_FRONT = BLOCK_FRONT - 0.96, STAIR_BACK = BLOCK_BACK + 1.6;
+  const stepMat = M(0x2a2836);
+  for (let r = 0; r < SEAT_ROWS; r++) box(AISLE * 2, rowY(r), SEAT_ROW_GAP, stepMat, 0, rowY(r) / 2, SEAT_Z0 + r * SEAT_ROW_GAP + 0.1);
+  for (let i = 0; i < 3; i++) { const hgt = SEAT_BASE * (i + 1) / 3; box(AISLE * 2, hgt, 0.32, stepMat, 0, hgt / 2, STAIR_FRONT + 0.16 + i * 0.32); }
+  for (let i = 0; i < 8; i++) { const hgt = rowY(SEAT_ROWS - 1) * (8 - i) / 9; box(AISLE * 2, hgt, 0.2, stepMat, 0, hgt / 2, BLOCK_BACK + 0.1 + i * 0.2); }
+  function groundAt(x, z) {
+    if (Math.abs(x) >= AISLE) return 0;
+    if (z <= STAIR_FRONT) return 0;
+    if (z < BLOCK_FRONT) return SEAT_BASE * (z - STAIR_FRONT) / (BLOCK_FRONT - STAIR_FRONT);
+    if (z <= BLOCK_BACK) return rowY(Math.max(0, Math.min(SEAT_ROWS - 1, Math.floor((z - BLOCK_FRONT) / SEAT_ROW_GAP))));
+    if (z < STAIR_BACK) return rowY(SEAT_ROWS - 1) * (1 - (z - BLOCK_BACK) / (STAIR_BACK - BLOCK_BACK));
+    return 0;
+  }
+  [-1, 1].forEach(s => {                                                   // rail along the front edge of the platform
+    box(SEAT_XMAX + 0.3 - AISLE, 0.05, 0.05, railMat, s * (AISLE + SEAT_XMAX + 0.3) / 2, SEAT_BASE + 0.95, BLOCK_FRONT - 0.03);
+    box(SEAT_XMAX + 0.3 - AISLE, 0.6, 0.03, glassMat, s * (AISLE + SEAT_XMAX + 0.3) / 2, SEAT_BASE + 0.65, BLOCK_FRONT - 0.03);
+  });
+
+  /* ---------- marketing booths ---------- */
+  const BOOTHS = [
+    { id: 'merch', x: -13.4, z: 1.5, rot: Math.PI / 2, color: 0xffb347, eyebrow: 'OFFICIAL MD', name: '공식 굿즈 스토어', tag: '응원봉 · 투어 티셔츠 · 포토카드',
+      kind: '굿즈 판매 · 매출 전환', title: '공식 굿즈 스토어',
+      desc: '공연 당일 한정 상품을 가상 부스에서 미리 보고 담을 수 있어요. 공연장 현장 수령 데스크에서 바로 받거나 택배 배송을 고를 수 있습니다.',
+      items: [['공식 응원봉 v2', '39,000원'], ['2026 겨울 투어 티셔츠', '45,000원'], ['포토카드 세트 (8종)', '15,000원']],
+      cta: '장바구니 담기', done: '장바구니에 담았어요. 공연 당일 1층 현장 수령 데스크에서 받으세요.', convert: true },
+    { id: 'sponsor', x: 13.4, z: 1.5, rot: -Math.PI / 2, color: 0x8b7bff, eyebrow: 'SPONSOR', name: '루미 스파클링', tag: '부스 방문 시 20% 쿠폰',
+      kind: '협찬 브랜드 · 쿠폰 전환', title: '루미 스파클링',
+      desc: '공연 협찬 음료 브랜드 부스예요 (가상의 브랜드). 방문자에게 편의점 20% 할인 쿠폰을 지급해 온라인 체험을 오프라인 구매로 연결합니다.',
+      items: [['제로 레몬 350ml', '1,800원'], ['자몽 스파클링 350ml', '1,800원'], ['쿠폰 사용처', '전국 편의점']],
+      cta: '20% 쿠폰 받기', done: '쿠폰이 발급됐어요. 코드 LUMI-MH20 · 30일간 사용 가능', convert: true },
+    { id: 'photo', x: -8, z: 13.2, rot: Math.PI, color: 0xff7aa8, eyebrow: 'PHOTO ZONE', name: '포토존', tag: '#명화라이브홀 인증샷 이벤트',
+      kind: '바이럴 · SNS 확산', title: '포토존 인증샷 이벤트',
+      desc: '가상 포토월 앞에서 아바타 사진을 찍어 해시태그와 함께 SNS에 올리면 추첨으로 사인 포스터를 드려요. 공유 수가 곧 도달 지표가 됩니다.',
+      items: [['해시태그', '#명화라이브홀'], ['추첨 경품', '사인 포스터 30명']],
+      cta: '인증샷 공유하기', done: '공유 완료로 기록됐어요. 당첨자는 공연 후 개별 안내됩니다.', convert: false },
+    { id: 'ticket', x: 8, z: 13.2, rot: Math.PI, color: 0x5fd4a0, eyebrow: 'NEXT SHOW', name: '다음 공연 선예매', tag: '알림 신청 시 수수료 면제',
+      kind: '재방문 유도 · 리텐션', title: '다음 공연 선예매',
+      desc: '오늘 입장한 방문자에게 다음 공연 선예매 알림을 먼저 보내요. 메타버스 방문이 실제 티켓 구매로 이어지는지 측정하는 지점입니다.',
+      items: [['다음 공연', '2026.12 연말 콘서트'], ['선예매 혜택', '예매 수수료 면제']],
+      cta: '선예매 알림 신청', done: '알림 신청이 완료됐어요. 선예매 오픈 하루 전에 안내드릴게요.', convert: true },
+  ];
+  const pickables = [];
+  BOOTHS.forEach(b => {
+    const g = new THREE.Group();
+    const col = new THREE.Color(b.color);
+    const counter = new THREE.Mesh(new THREE.BoxGeometry(3.2, 1.0, 0.9), M(0x221d40)); counter.position.set(0, 0.5, 0);
+    const strip = new THREE.Mesh(new THREE.BoxGeometry(3.22, 0.05, 0.92), B(b.color)); strip.position.set(0, 1.02, 0);
+    const back = new THREE.Mesh(new THREE.BoxGeometry(3.8, 3.2, 0.14), M(0x18142f)); back.position.set(0, 1.6, -1.0);
+    const tex = makeTex(768, 400, (gx, w, h) => {
+      gx.fillStyle = '#15112d'; gx.fillRect(0, 0, w, h);
+      const grd = gx.createRadialGradient(w * 0.85, h * 0.1, 10, w * 0.85, h * 0.1, w * 0.8);
+      grd.addColorStop(0, hex(b.color) + '55'); grd.addColorStop(1, 'rgba(0,0,0,0)');
+      gx.fillStyle = grd; gx.fillRect(0, 0, w, h);
+      gx.fillStyle = hex(b.color); gx.fillRect(0, 0, w, 10);
+      gx.font = '600 32px "IBM Plex Mono", monospace'; gx.fillText(b.eyebrow, 44, 84);
+      gx.fillStyle = '#fff'; fitFont(gx, b.name, '"Black Han Sans", sans-serif', 96, w - 88); gx.fillText(b.name, 44, 210);
+      gx.fillStyle = '#d4cdf3'; fitFont(gx, b.tag, '"IBM Plex Sans KR", sans-serif', 38, w - 88); gx.fillText(b.tag, 44, 290);
+      gx.fillStyle = 'rgba(255,255,255,.5)'; gx.font = '500 26px "IBM Plex Sans KR", sans-serif'; gx.fillText('가까이 가서 클릭하세요', 44, 360);
+    });
+    const sign = new THREE.Mesh(new THREE.PlaneGeometry(3.6, 1.875), new THREE.MeshBasicMaterial({ map: tex })); sign.position.set(0, 2.15, -0.92);
+    for (let i = 0; i < 3; i++) {
+      const p = new THREE.Mesh(i === 1 ? new THREE.CylinderGeometry(0.12, 0.12, 0.38, 14) : new THREE.BoxGeometry(0.36, 0.3, 0.26), M(col.clone().multiplyScalar(0.7 + i * 0.12), { roughness: 0.4 }));
+      p.position.set(-0.9 + i * 0.9, 1.2, 0); g.add(p); p.userData.booth = b.id; pickables.push(p);
+    }
+    const ring = new THREE.Mesh(new THREE.RingGeometry(0.85, 1.05, 48), new THREE.MeshBasicMaterial({ color: b.color, transparent: true, opacity: 0.7, side: THREE.DoubleSide }));
+    ring.rotation.x = -Math.PI / 2; ring.position.set(0, 0.02, 1.7);
+    [counter, back, sign].forEach(m => { m.userData.booth = b.id; pickables.push(m); });
+    g.add(counter, strip, back, sign, ring);
+    g.position.set(b.x, 0, b.z); g.rotation.y = b.rot; scene.add(g); g.updateMatrixWorld();
+    b.ring = ring;
+    b.spot = new THREE.Vector3(0, 0, 1.7).applyMatrix4(g.matrixWorld);
+    b.center = new THREE.Vector3(0, 0, -0.4).applyMatrix4(g.matrixWorld);
+  });
+  const boothById = Object.fromEntries(BOOTHS.map(b => [b.id, b]));
+
+  /* ---------- audience: packed standing floor + balconies ---------- */
+  const clothes = [0x1d1d26, 0x23232c, 0x2c2f3d, 0x1b2233, 0x3a3c48, 0xdcd8d0, 0xc9c3b8, 0x8a2430, 0x4a5f80, 0x5e4e40, 0x101014];
+  const hairs = [0x15100e, 0x1c1512, 0x241a14, 0x2f2118, 0x4a3324];
+  const skins = [0xeccaa9, 0xe2b999, 0xd6aa88];
+  const pick = a => a[Math.floor(rnd() * a.length)];
+  const people = [];
+  function addPerson(x, y, z, seated) {
+    const tx = 0, tz = -16; const dx = tx - x, dz = tz - z, d = Math.hypot(dx, dz) || 1;
+    people.push({ x, y, z, fx: dx / d, fz: dz / d, seated, phase: rnd() * 6.28, h: 0.9 + rnd() * 0.17,
+      stick: rnd() < (seated ? 0.3 : 0.42), cloth: pick(clothes), hair: pick(hairs), skin: pick(skins), stickC: rnd() });
+  }
+  for (let z = -12.55; z <= -4.8; z += 0.64) {
+    for (let x = -11.5; x <= 11.5; x += 0.6) {
+      const jx = x + (rnd() - 0.5) * 0.3, jz = z + (rnd() - 0.5) * 0.28;
+      if (rnd() < 0.06) continue;
+      if (BOOTHS.some(b => Math.hypot(jx - b.spot.x, jz - b.spot.z) < 2.3)) continue;
+      addPerson(jx, 0, jz, false);
+    }
+  }
+  /* ---------- seat registry: every seat has a section, row and number ---------- */
+  const SECTIONS = [
+    { id: '1L',  name: '1층 왼쪽',        short: '1층 왼쪽',   side: false, occ: 0.85 },
+    { id: '1R',  name: '1층 오른쪽',      short: '1층 오른쪽', side: false, occ: 0.85 },
+    { id: '2SL', name: '2층 왼쪽 사이드', short: '2층 왼쪽',   side: true,  occ: 0.85 },
+    { id: '2SR', name: '2층 오른쪽 사이드', short: '2층 오른쪽', side: true, occ: 0.85 },
+    { id: '2C',  name: '2층 정면',        short: '2층 정면',   side: false, occ: 0.88 },
+    { id: '3C',  name: '3층 정면',        short: '3층 정면',   side: false, occ: 0.8 },
+  ];
+  const SEC = Object.fromEntries(SECTIONS.map(s => [s.id, s]));
+  const allSeats = [], seatMeshList = [];
+  function registerSeats(list, mesh, info) {
+    mesh.userData.seats = list.map(([x, y, z]) => {
+      const s = Object.assign({ x, y, z }, info(x, y, z));
+      allSeats.push(s); return s;
+    });
+    seatMeshList.push(mesh);
+  }
+  registerSeats(floorSeatPos, floorSeatMesh, (x, y, z) => ({ sec: x < 0 ? '1L' : '1R', row: Math.round((z - SEAT_Z0) / SEAT_ROW_GAP) + 1 }));
+  registerSeats(sideSeatPos, sideSeatMesh, (x) => ({ sec: x < 0 ? '2SL' : '2SR', row: Math.abs(x) < 12.7 ? 1 : 2 }));
+  registerSeats(seatPos, rearSeatMesh, (x, y, z) => ({ sec: '2C', row: Math.round(z - 15.75) + 1 }));
+  registerSeats(seat3Pos, seat3Mesh, (x, y, z) => ({ sec: '3C', row: Math.round((z - 17.85) / 0.8) + 1 }));
+  SECTIONS.forEach(sec => { sec.rows = {}; });
+  allSeats.forEach(s => { (SEC[s.sec].rows[s.row] = SEC[s.sec].rows[s.row] || []).push(s); });
+  SECTIONS.forEach(sec => Object.values(sec.rows).forEach(arr => {
+    arr.sort((a, b) => sec.side ? a.z - b.z : a.x - b.x);              // left to right, or stage side first
+    arr.forEach((s, i) => { s.num = i + 1; s.key = `${s.sec}-${s.row}-${s.num}`; });
+  }));
+  const findSeat = (sec, row, num) => (SEC[sec].rows[row] || [])[num - 1];
+  allSeats.forEach(s => { if (rnd() < SEC[s.sec].occ) { addPerson(s.x, s.y, s.z, true); s.person = people[people.length - 1]; } });
+
+  // which way each chair faces: rows face the stage, side-balcony chairs face into the hall
+  allSeats.forEach(s => {
+    s.fyaw = s.sec === '2SL' ? -Math.PI / 2 : s.sec === '2SR' ? Math.PI / 2 : 0;
+    s.cx = s.x; s.cz = SEC[s.sec].side ? s.z : s.z + 0.1;           // cushion centre
+  });
+  // seatbacks: the row in front shows as a line of chair backs below the stage, like a real seat
+  const backMesh = new THREE.InstancedMesh(new THREE.BoxGeometry(0.46, 0.62, 0.07), M(0x22468f), allSeats.length);
+  const armMesh = new THREE.InstancedMesh(new THREE.BoxGeometry(0.05, 0.05, 0.36), M(0x1a1b24), allSeats.length);
+  const fwd = new THREE.Vector3();
+  allSeats.forEach((s, i) => {
+    dummy.rotation.set(0, s.fyaw, 0); dummy.scale.set(1, 1, 1);
+    fwd.set(0, 0, 0.23).applyAxisAngle(THREE.Object3D.DefaultUp, s.fyaw);
+    dummy.position.set(s.cx + fwd.x, s.y + 0.78, s.cz + fwd.z); dummy.updateMatrix(); backMesh.setMatrixAt(i, dummy.matrix);
+    fwd.set(0.27, 0, -0.02).applyAxisAngle(THREE.Object3D.DefaultUp, s.fyaw);
+    dummy.position.set(s.cx + fwd.x, s.y + 0.66, s.cz + fwd.z); dummy.updateMatrix(); armMesh.setMatrixAt(i, dummy.matrix);
+  });
+  backMesh.frustumCulled = armMesh.frustumCulled = false;
+  scene.add(backMesh, armMesh);
+
+  // the visitor's own legs and armrests, shown only while seated
+  const seatRig = new THREE.Group();
+  const jeans = M(0x2b3550), shoe = M(0x121218);
+  [-1, 1].forEach(s => {
+    const thigh = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.14, 0.44), jeans); thigh.position.set(s * 0.1, 0.56, -0.22);
+    const shin = new THREE.Mesh(new THREE.BoxGeometry(0.13, 0.46, 0.13), jeans); shin.position.set(s * 0.1, 0.3, -0.44);
+    const foot = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.08, 0.25), shoe); foot.position.set(s * 0.1, 0.04, -0.52);
+    const hand = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.04, 0.12), M(0xe2b999)); hand.position.set(s * 0.27, 0.72, -0.24);
+    seatRig.add(thigh, shin, foot, hand);
+  });
+  seatRig.visible = false; scene.add(seatRig);
+  function placeRig(s) {
+    seatRig.position.set(s.cx, s.y, s.cz); seatRig.rotation.set(0, s.fyaw, 0); seatRig.visible = true;
+  }
+
+  // Crowd is placed once; the jumping is done on the GPU (no per-frame CPU work)
+  const crowdU = { uTime: { value: 0 }, uAmp: { value: 0.15 } };
+  function bounceMat(mat) {
+    mat.onBeforeCompile = sh => {
+      sh.uniforms.uTime = crowdU.uTime; sh.uniforms.uAmp = crowdU.uAmp;
+      sh.vertexShader = 'attribute float aPhase;\nattribute float aBounce;\nuniform float uTime;\nuniform float uAmp;\n' +
+        sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\n  transformed.y += max(0.0, sin(uTime * 5.2 + aPhase)) * uAmp * aBounce;');
+    };
+    return mat;
+  }
+  const tmpC = new THREE.Color();
+  function crowdLayer(geo, mat, list, place, colorOf) {
+    const n = list.length;
+    const ph = new Float32Array(n), bo = new Float32Array(n);
+    list.forEach((p, i) => { ph[i] = p.phase; bo[i] = p.seated ? 0 : 1; });
+    geo.setAttribute('aPhase', new THREE.InstancedBufferAttribute(ph, 1));
+    geo.setAttribute('aBounce', new THREE.InstancedBufferAttribute(bo, 1));
+    const m = new THREE.InstancedMesh(geo, bounceMat(mat), n);
+    list.forEach((p, i) => {
+      dummy.rotation.set(0, 0, 0); dummy.scale.set(1, 1, 1);
+      place(p); dummy.updateMatrix(); m.setMatrixAt(i, dummy.matrix);
+      (p.slots = p.slots || []).push([m, i, dummy.matrix.clone()]);
+      m.setColorAt(i, colorOf(p));
+    });
+    m.frustumCulled = false; scene.add(m); return m;
+  }
+  const headY = p => p.seated ? p.y + 1.27 : p.y + 1.42 * p.h;
+  crowdLayer(new THREE.CylinderGeometry(0.19, 0.24, 1.3, 6), new THREE.MeshLambertMaterial({ color: 0xffffff }), people,
+    p => { if (p.seated) { dummy.position.set(p.x, p.y + 0.8, p.z); dummy.scale.set(1, 0.55, 1); } else { dummy.position.set(p.x, p.y + 0.65 * p.h, p.z); dummy.scale.set(1, p.h, 1); } },
+    p => tmpC.setHex(p.cloth));
+  crowdLayer(new THREE.SphereGeometry(0.15, 8, 6), new THREE.MeshLambertMaterial({ color: 0xffffff }), people,
+    p => dummy.position.set(p.x - p.fx * 0.02, headY(p) + 0.02, p.z - p.fz * 0.02),
+    p => tmpC.setHex(p.hair));
+  crowdLayer(new THREE.SphereGeometry(0.125, 7, 5), new THREE.MeshLambertMaterial({ color: 0xffffff }), people,
+    p => dummy.position.set(p.x + p.fx * 0.055, headY(p) - 0.02, p.z + p.fz * 0.055),
+    p => tmpC.setHex(p.skin));
+  const stickCols = [0xffb347, 0x9d8fff, 0xfff2d9];
+  crowdLayer(new THREE.SphereGeometry(0.07, 6, 4), new THREE.MeshBasicMaterial({ color: 0xffffff }), people.filter(p => p.stick),
+    p => dummy.position.set(p.x + p.fx * 0.25, headY(p) + 0.48, p.z + p.fz * 0.25),
+    p => tmpC.setHex(stickCols[Math.floor(p.stickC * 3)]));
+
+  /* ---------- player ---------- */
+  const STAND_EYE = 1.65, SEAT_EYE = 1.18;
+  const LEVELS = {
+    floor: { x: [-14, 14], z: [-12.6, 14.2] },
+  };
+  const VIEWS = {
+    front: { x: 1.4,  z: -12.3, floorY: 0,        eye: STAND_EYE, yaw: 0,    pitch: 0.14,  level: 'floor', label: '1층 스탠딩 구역' },
+    midL:  { seat: ['1L', 5, 16] },
+    mid:   { seat: ['1R', 5, 2] },
+    entry: { x: 0,    z: 13.8,  floorY: 0,        eye: STAND_EYE, yaw: 0,    pitch: 0.03,  level: 'floor', label: '1층 입구 · 부스 구역' },
+    sideL: { seat: ['2SL', 1, 27] },
+    side:  { seat: ['2SR', 1, 27] },
+    rear:  { seat: ['2C', 2, 21] },
+    third: { seat: ['3C', 1, 21] },
+  };
+  const P = { ...VIEWS.front };
+  let tween = null;
+  const SEC_TO_VIEW = { '1L': 'midL', '1R': 'mid', '2SL': 'sideL', '2SR': 'side', '2C': 'rear', '3C': 'third' };
+  function pressView(name) {
+    document.querySelectorAll('[data-view]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.view === name)));
+  }
+  function moveTo(v, instant) {
+    if (instant) { Object.assign(P, v); tween = null; }
+    else { tween = { from: { ...P }, to: v, t: 0, dur: reduceMotion ? 0.01 : 0.9 }; P.level = v.level; }
+  }
+
+  // sitting: every seat looks at the stage from its own spot, at seated eye height
+  const STAGE_TARGET = { x: 0, y: 3.0, z: -16 };
+  const ZERO_M = new THREE.Matrix4().makeScale(0, 0, 0);
+  function showPerson(p, vis) {
+    if (!p || !p.slots) return;
+    p.slots.forEach(([m, i, mat]) => { m.setMatrixAt(i, vis ? mat : ZERO_M); m.instanceMatrix.needsUpdate = true; });
+  }
+  const seatLabel = s => `${SEC[s.sec].name} · ${s.row}열 ${s.num}번`;
+  function seatView(s) {
+    const dx = STAGE_TARGET.x - s.x, dz = STAGE_TARGET.z - s.z;
+    return { x: s.x, z: s.z, floorY: s.y, eye: SEAT_EYE, level: 'seat',
+      yaw: Math.atan2(-dx, -dz), pitch: Math.atan2(STAGE_TARGET.y - (s.y + SEAT_EYE), Math.hypot(dx, dz)) - 0.1 };
+  }
+  let currentSeat = null, seatTipShown = false;
+  function sitSeat(s, opts = {}) {
+    if (!s) return;
+    if (currentSeat) showPerson(currentSeat.person, true);
+    currentSeat = s; showPerson(s.person, false); placeRig(s);
+    moveTo(seatView(s), opts.instant);
+    pressView(SEC_TO_VIEW[s.sec]);
+    if (!opts.silent) {
+      metrics.seats.add(s.key);
+      logEvent(`시야 확인 · ${seatLabel(s)}`);
+      track('seat/' + s.key, '좌석 시야 · ' + seatLabel(s));
+      try { history.replaceState(null, '', '#seat-' + s.key); } catch (_) {}
+      if (!seatTipShown) { seatTipShown = true; toast(coarse ? '▲▼ 앞뒤 줄 · ◀▶ 옆자리로 옮겨 앉기' : 'W/S 앞뒤 줄 · A/D 옆자리로 옮겨 앉기'); }
+      renderKPI();
+    }
+    updateSeatUI();
+    if (typeof showSeatViews === 'function') showSeatViews(s.key);
+  }
+  function standUp() { if (currentSeat) showPerson(currentSeat.person, true); currentSeat = null; seatRig.visible = false; updateSeatUI(); }
+  function stepSeat(dRow, dNum) {
+    if (!currentSeat) return;
+    const sec = SEC[currentSeat.sec];
+    const arr = sec.rows[currentSeat.row + dRow];
+    if (!arr) { toast(dRow < 0 ? '이 구역의 맨 앞줄이에요' : dRow > 0 ? '이 구역의 맨 뒷줄이에요' : ''); return; }
+    if (currentSeat.sec === '2SR') dNum = -dNum;      // on the right balcony the viewer's right is the stage side
+    if (dRow === 0 && currentSeat.sec === '1R' && currentSeat.num === 1 && dNum < 0) { sitSeat(SEC['1L'].rows[currentSeat.row].slice(-1)[0]); return; }
+    if (dRow === 0 && currentSeat.sec === '1L' && currentSeat.num === arr.length && dNum > 0) { sitSeat(SEC['1R'].rows[currentSeat.row][0]); return; }
+    const num = Math.max(1, Math.min(arr.length, currentSeat.num + dNum));
+    const s = arr[num - 1];
+    if (s === currentSeat) { toast(dNum < 0 ? '이 줄의 첫 번째 자리예요' : '이 줄의 마지막 자리예요'); return; }
+    sitSeat(s);
+  }
+
+  function goView(name) {
+    const v = VIEWS[name];
+    if (v.seat) { sitSeat(findSeat(...v.seat)); return; }
+    standUp();
+    moveTo(v);
+    pressView(name);
+    logEvent(v.label);
+    track('view/' + name, '시점 · ' + v.label);
+  }
+  document.querySelectorAll('[data-view]').forEach(b => b.addEventListener('click', () => goView(b.dataset.view)));
+
+  const keys = {}, pad = {};
+  addEventListener('keydown', e => {
+    keys[e.code] = true;
+    if (e.code === 'KeyE' && nearBooth) openPanel(nearBooth);
+    if (e.code === 'Escape') { closePanel(); seatMap.hidden = true; }
+    if (P.level === 'seat' && !e.repeat) {
+      const step = { KeyW: [-1, 0], ArrowUp: [-1, 0], KeyS: [1, 0], ArrowDown: [1, 0], KeyA: [0, -1], KeyD: [0, 1] }[e.code];
+      if (step) { e.preventDefault(); stepSeat(...step); }
+    }
+  });
+  addEventListener('keyup', e => { keys[e.code] = false; });
+  addEventListener('blur', () => { for (const k in keys) keys[k] = false; });
+
+  let drag = null;
+  canvas.addEventListener('pointerdown', e => {
+    drag = { id: e.pointerId, lx: e.clientX, ly: e.clientY, sx: e.clientX, sy: e.clientY };
+    try { canvas.setPointerCapture(e.pointerId); } catch (_) {}
+  });
+  canvas.addEventListener('pointermove', e => {
+    if (!drag || e.pointerId !== drag.id) return;
+    const k = e.pointerType === 'touch' ? 0.006 : 0.0042;
+    P.yaw -= (e.clientX - drag.lx) * k;
+    P.pitch = Math.max(-1.1, Math.min(1.1, P.pitch - (e.clientY - drag.ly) * k));
+    drag.lx = e.clientX; drag.ly = e.clientY;
+  });
+  canvas.addEventListener('pointerup', e => {
+    if (!drag || e.pointerId !== drag.id) return;
+    if (Math.hypot(e.clientX - drag.sx, e.clientY - drag.sy) < 6) pickAt(e);
+    drag = null;
+  });
+  canvas.addEventListener('pointercancel', () => { drag = null; });
+
+  const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
+  function pickAt(e) {
+    const r = canvas.getBoundingClientRect();
+    ndc.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
+    ray.setFromCamera(ndc, camera);
+    const hit = ray.intersectObjects(pickables, false)[0];
+    const sHit = ray.intersectObjects(seatMeshList, false)[0];
+    if (hit && (!sHit || hit.distance <= sHit.distance)) {
+      const b = boothById[hit.object.userData.booth];
+      if (hit.distance < 14) openPanel(b); else toast('조금 더 가까이 가서 클릭해 보세요');
+      return;
+    }
+    if (sHit && sHit.instanceId != null) sitSeat(sHit.object.userData.seats[sHit.instanceId]);
+  }
+
+  if (coarse) $('#pad').hidden = false;
+  document.querySelectorAll('#pad button').forEach(btn => {
+    const d = btn.dataset.dir;
+    btn.addEventListener('pointerdown', e => {
+      e.preventDefault(); pad[d] = true;
+      if (P.level === 'seat') stepSeat(...({ up: [-1, 0], down: [1, 0], left: [0, -1], right: [0, 1] })[d]);
+    });
+    ['pointerup', 'pointerleave', 'pointercancel'].forEach(ev => btn.addEventListener(ev, () => { pad[d] = false; }));
+  });
+
+  /* ---------- metrics ---------- */
+  const metrics = { start: performance.now(), dist: 0, seats: new Set(), visits: new Set(), inter: 0, conv: 0, done: new Set() };
+  const logEl = $('#log');
+  function logEvent(text) {
+    const li = document.createElement('li');
+    const tm = document.createElement('time'); tm.textContent = new Date().toTimeString().slice(0, 8);
+    const sp = document.createElement('span'); sp.textContent = text;
+    li.append(tm, sp);
+    const empty = logEl.querySelector('.empty'); if (empty) empty.remove();
+    logEl.prepend(li);
+    while (logEl.children.length > 5) logEl.lastChild.remove();
+  }
+  function renderKPI() {
+    const s = Math.floor((performance.now() - metrics.start) / 1000);
+    const mmss = String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
+    $('#kDwell').textContent = mmss;
+    $('#kSeats').textContent = metrics.seats.size;
+    $('#kVisit').textContent = metrics.visits.size;
+    $('#kVisitBar').style.width = (metrics.visits.size / BOOTHS.length * 100) + '%';
+    $('#kInter').textContent = metrics.inter;
+    $('#kConv').textContent = metrics.conv;
+    $('#kRate').textContent = metrics.visits.size ? Math.round(metrics.conv / metrics.visits.size * 100) : 0;
+    $('#kpiMini').textContent = `체류 ${mmss} · 좌석 ${metrics.seats.size} · 전환 ${metrics.conv}`;
+  }
+  setInterval(renderKPI, 500);
+
+  const kpi = $('#kpi'), kpiToggle = $('#kpiToggle');
+  function setKpi(collapsed) {
+    kpi.classList.toggle('collapsed', collapsed);
+    kpiToggle.textContent = collapsed ? '펼치기' : '접기';
+    kpiToggle.setAttribute('aria-expanded', String(!collapsed));
+  }
+  kpiToggle.addEventListener('click', () => setKpi(!kpi.classList.contains('collapsed')));
+  if (innerWidth < 700) setKpi(true);
+
+  /* ---------- booth panel ---------- */
+  const panel = $('#panel'); let current = null;
+  function openPanel(b) {
+    current = b;
+    $('#pKind').textContent = b.kind; $('#pKind').style.color = hex(b.color);
+    $('#pTitle').textContent = b.title; $('#pDesc').textContent = b.desc;
+    const ul = $('#pItems'); ul.innerHTML = '';
+    b.items.forEach(([a, v]) => { const li = document.createElement('li'); const s1 = document.createElement('span'); s1.textContent = a; const s2 = document.createElement('span'); s2.textContent = v; li.append(s1, s2); ul.append(li); });
+    const done = metrics.done.has(b.id);
+    const cta = $('#pCta'); cta.disabled = done; cta.textContent = done ? '완료됨' : b.cta;
+    $('#pDone').hidden = !done; $('#pDone').textContent = b.done;
+    panel.hidden = false;
+    setSeatMap(false);
+    metrics.inter++;
+    track('booth/' + b.id, '부스 · ' + b.name);
+    if (!metrics.visits.has(b.id)) { metrics.visits.add(b.id); logEvent(`${b.name} 첫 방문`); }
+    else logEvent(`${b.name} 재방문`);
+    renderKPI();
+  }
+  function closePanel() { panel.hidden = true; current = null; }
+  $('#panelClose').addEventListener('click', closePanel);
+  $('#pCta').addEventListener('click', () => {
+    if (!current || metrics.done.has(current.id)) return;
+    metrics.done.add(current.id); metrics.inter++;
+    track('convert/' + current.id, '전환 · ' + current.cta);
+    if (current.convert) metrics.conv++;
+    logEvent(`${current.name}: ${current.cta}`);
+    $('#pCta').disabled = true; $('#pCta').textContent = '완료됨';
+    $('#pDone').hidden = false;
+    renderKPI();
+  });
+
+  let toastTimer;
+  function toast(msg) { const t = $('#toast'); t.textContent = msg; t.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => t.hidden = true, 1800); }
+
+  $('#showBtn').addEventListener('click', e => {
+    showOn = !showOn;
+    e.currentTarget.setAttribute('aria-pressed', String(showOn));
+    e.currentTarget.textContent = showOn ? '공연 연출 ON' : '공연 연출 OFF';
+  });
+
+  /* ---------- movement ---------- */
+  let nearBooth = null;
+  const promptEl = $('#prompt');
+  $('#promptBtn').addEventListener('click', () => nearBooth && openPanel(nearBooth));
+  if (matchMedia('(pointer: coarse)').matches) document.querySelector('#promptBtn kbd').textContent = '탭';
+
+  let bobT = 0;
+  function move(dt) {
+    if (tween) {
+      tween.t += dt / tween.dur;
+      const k = tween.t >= 1 ? 1 : 1 - Math.pow(1 - tween.t, 3);
+      ['x', 'z', 'floorY', 'eye', 'pitch'].forEach(p => P[p] = tween.from[p] + (tween.to[p] - tween.from[p]) * k);
+      let dy = tween.to.yaw - tween.from.yaw; dy = Math.atan2(Math.sin(dy), Math.cos(dy));
+      P.yaw = tween.from.yaw + dy * k;
+      if (tween.t >= 1) tween = null;
+    } else {
+      let f = 0, s = 0;
+      if (keys.KeyW || keys.ArrowUp || pad.up) f += 1;
+      if (keys.KeyS || keys.ArrowDown || pad.down) f -= 1;
+      if (keys.KeyD || pad.right) s += 1;
+      if (keys.KeyA || pad.left) s -= 1;
+      if (keys.ArrowLeft) P.yaw += 1.8 * dt;
+      if (keys.ArrowRight) P.yaw -= 1.8 * dt;
+      if ((f || s) && P.level !== 'seat') {
+        const len = Math.hypot(f, s); f /= len; s /= len;
+        const sp = (keys.ShiftLeft || keys.ShiftRight ? 6.5 : 3.6) * dt;
+        const fx = -Math.sin(P.yaw), fz = -Math.cos(P.yaw), rx = Math.cos(P.yaw), rz = -Math.sin(P.yaw);
+        const L = LEVELS[P.level];
+        let nx = Math.max(L.x[0], Math.min(L.x[1], P.x + (fx * f + rx * s) * sp));
+        let nz = Math.max(L.z[0], Math.min(L.z[1], P.z + (fz * f + rz * s) * sp));
+        if (inSeatBlock(nx, nz)) {
+          if (!inSeatBlock(nx, P.z)) nz = P.z;
+          else if (!inSeatBlock(P.x, nz)) nx = P.x;
+          else { nx = P.x; nz = P.z; }
+        }
+        if (P.level === 'floor') BOOTHS.forEach(b => {
+          const dx = nx - b.center.x, dz = nz - b.center.z, d = Math.hypot(dx, dz);
+          if (d < 1.9) { nx = b.center.x + dx / d * 1.9; nz = b.center.z + dz / d * 1.9; }
+        });
+        metrics.dist += Math.hypot(nx - P.x, nz - P.z);
+        P.x = nx; P.z = nz;
+        if (!reduceMotion) bobT += dt * 9;
+      }
+    }
+    if (P.level === 'floor' && !tween) P.floorY += (groundAt(P.x, P.z) - P.floorY) * Math.min(1, dt * 12);
+    const bob = reduceMotion ? 0 : Math.sin(bobT) * 0.035;
+    camera.position.set(P.x, P.floorY + P.eye + bob, P.z);
+    camera.rotation.set(P.pitch, P.yaw, 0);
+
+    let best = null, bd = 2.6;
+    if (P.level === 'floor' && !tween) BOOTHS.forEach(b => { const d = Math.hypot(P.x - b.spot.x, P.z - b.spot.z); if (d < bd) { bd = d; best = b; } });
+    if (best !== nearBooth) { nearBooth = best; if (best) $('#promptText').textContent = `${best.name} 둘러보기`; }
+    promptEl.hidden = !nearBooth || !panel.hidden;
+  }
+
+  /* ---------- animate ---------- */
+  let last = performance.now(), T = 0, frame = 0, perfAcc = 0, perfN = 0;
+  function loop(now) {
+    requestAnimationFrame(loop);   // keep the scene alive even if one frame throws
+    // rAF timestamps can be slightly earlier than performance.now() on the first frame
+    const dt = Math.max(0, Math.min(0.05, (now - last) / 1000)); last = Math.max(last, now); T += dt; frame++;
+    move(dt);
+    crowdU.uTime.value = T;
+    crowdU.uAmp.value = reduceMotion ? 0.015 : (showOn ? 0.15 : 0.025);
+    // adaptive resolution: if frames are slow, render fewer pixels
+    perfAcc += dt; perfN++;
+    if (perfN === 60) {
+      if (perfAcc / perfN > 0.022 && dpr > 0.6) { dpr = Math.max(0.6, dpr - 0.2); renderer.setPixelRatio(dpr); resize(); }
+      perfAcc = 0; perfN = 0;
+    }
+    const sweep = reduceMotion ? 0.05 : (showOn ? 0.42 : 0.08);
+    cones.forEach(o => {
+      o.c.rotation.z = Math.sin(T * 0.9 + o.phase) * sweep * o.dir;
+      o.c.rotation.x = 0.2 + Math.cos(T * 0.7 + o.phase) * sweep * 0.5;
+      o.c.material.opacity = showOn ? 0.06 + 0.04 * Math.sin(T * 2 + o.phase) : 0.03;
+    });
+    performers.forEach(p => { p.grp.rotation.z = Math.sin(T * 2.6 + p.phase) * (showOn && !reduceMotion ? 0.06 : 0); });
+    wash.intensity = showOn ? 1.1 + Math.sin(T * 2.4) * 0.4 : 0.7;
+    BOOTHS.forEach((b, i) => { b.ring.material.opacity = 0.45 + 0.35 * Math.sin(T * 3 + i); });
+    if (frame % 6 === 0) { drawLED(lg, ledCanvas.width, ledCanvas.height, T); ledTex.needsUpdate = true; }
+    renderer.render(scene, camera);
+  }
+
+  if (document.fonts && document.fonts.load) {
+    Promise.race([
+      Promise.all([
+        document.fonts.load('40px "Black Han Sans"', '명화'),
+        document.fonts.load('500 30px "IBM Plex Sans KR"', '명화'),
+        document.fonts.load('600 30px "IBM Plex Mono"'),
+      ]),
+      new Promise(r => setTimeout(r, 3000)),
+    ]).then(() => redraws.forEach(fn => fn())).catch(() => {});
+  }
+
+  /* ---------- seat bar & seat map ---------- */
+  const seatMap = $('#seatmap'), seatMapBtn = $('#seatMapBtn');
+  let mapSec = '2C';
+  const MAP_TABS = [
+    { id: '1F', name: '1층 좌석 (좌·우)' },
+    { id: 'SIDE', name: '2층 사이드 (좌·우)' }, { id: '2C', name: '2층 정면' }, { id: '3C', name: '3층 정면' },
+  ];
+  const tabOf = sec => SEC[sec].side ? 'SIDE' : (sec === '1L' || sec === '1R') ? '1F' : sec;
+  function seatButton(s) {
+    const b = document.createElement('button'); b.type = 'button';
+    b.className = 'seat' + (s === currentSeat ? ' cur' : metrics.seats.has(s.key) ? ' seen' : '');
+    b.title = seatLabel(s); b.setAttribute('aria-label', seatLabel(s));
+    b.addEventListener('click', () => sitSeat(s));
+    return b;
+  }
+  // side balconies drawn along the walls: stage at the top, seat 1 nearest the stage
+  function renderSidePlan(el) {
+    const cell = coarse ? 21 : 17, size = cell - 3, pxPerM = cell / 0.55;
+    const plan = document.createElement('div'); plan.className = 'sideplan';
+    const head = (title, a, b) => { const d = document.createElement('div'); d.className = 'sp-head'; d.textContent = title; const sm = document.createElement('small'); sm.innerHTML = `<span>${a}</span><span>${b}</span>`; d.append(sm); return d; };
+    const midHead = document.createElement('div'); midHead.className = 'sp-head'; midHead.innerHTML = '공연장 바닥<small><span>1층</span></small>';
+    plan.append(head('왼쪽 사이드', '2열', '1열'), midHead, head('오른쪽 사이드', '1열', '2열'));
+    function column(secId, rowOrder) {
+      const col = document.createElement('div'); col.className = 'scol';
+      col.style.gridTemplateColumns = `repeat(2, ${size}px)`; col.style.gridAutoRows = size + 'px'; col.style.gap = '3px';
+      const rows = SEC[secId].rows, n = rows[1].length;
+      for (let i = 0; i < n; i++) rowOrder.forEach(r => col.append(seatButton(rows[r][i])));
+      return col;
+    }
+    const mid = document.createElement('div'); mid.className = 'sp-mid';
+    const firstZ = SEC['2SL'].rows[1][0].z - 0.275;
+    [[firstZ, -4.3, '1층 스탠딩', '서서 보기', () => goView('front')],
+     [-4.3, 10.5, '1층 좌석', '좌석표 보기', () => { mapSec = '1F'; renderSeatMap(); }],
+     [10.5, 13.9, '입구 · 부스', '이동하기', () => goView('entry')]].forEach(([a, b, name, act, fn]) => {
+      const z = document.createElement('button'); z.type = 'button'; z.className = 'sp-zone';
+      z.style.height = Math.round((b - a) * pxPerM) + 'px';
+      z.innerHTML = `<span><b>${name}</b>${act}</span>`;
+      z.addEventListener('click', fn); mid.append(z);
+    });
+    plan.append(column('2SL', [2, 1]), mid, column('2SR', [1, 2]));
+    el.append(plan);
+  }
+  function updateSeatUI() {
+    const lbl = $('#seatLabel');
+    if (currentSeat) { lbl.innerHTML = ''; const b = document.createElement('b'); b.textContent = SEC[currentSeat.sec].name; lbl.append(b, ` · ${currentSeat.row}열 ${currentSeat.num}번`); }
+    else lbl.textContent = '서서 관람 중 · 좌석표에서 자리를 골라 보세요';
+    $('#seatPrev').disabled = $('#seatNext').disabled = !currentSeat;
+    if (!seatMap.hidden) renderSeatMap();
+  }
+  function renderSeatMap() {
+    const tabs = $('#seatTabs'); tabs.innerHTML = '';
+    MAP_TABS.forEach(t => {
+      const b = document.createElement('button'); b.type = 'button'; b.textContent = t.name;
+      b.setAttribute('aria-pressed', String(t.id === mapSec));
+      b.addEventListener('click', () => { mapSec = t.id; renderSeatMap(); });
+      tabs.append(b);
+    });
+    const cue = $('#stageCue');
+    cue.textContent = 'STAGE · 무대';
+    const rowsEl = $('#seatRows'); rowsEl.innerHTML = '';
+    if (mapSec === 'SIDE') {
+      renderSidePlan(rowsEl);
+      const cur = rowsEl.querySelector('.cur');
+      if (cur) cur.scrollIntoView({ block: 'center', inline: 'nearest' });
+      return;
+    }
+    if (mapSec === '1F') {
+      const L = SEC['1L'].rows, Rr = SEC['1R'].rows;
+      const head = document.createElement('div'); head.className = 'srow';
+      head.innerHTML = '<span class="rl"></span><span class="rl" style="width:auto;flex:1;text-align:center">왼쪽 구역</span><span class="rl" style="width:28px;text-align:center">통로</span><span class="rl" style="width:auto;flex:1;text-align:center">오른쪽 구역</span>';
+      rowsEl.append(head);
+      Object.keys(L).map(Number).sort((a, b) => a - b).forEach(r => {
+        const row = document.createElement('div'); row.className = 'srow';
+        const rl = document.createElement('span'); rl.className = 'rl'; rl.textContent = r + '열';
+        row.append(rl);
+        L[r].forEach(s => row.append(seatButton(s)));
+        const gap = document.createElement('span'); gap.style.cssText = 'flex:none;width:28px'; row.append(gap);
+        Rr[r].forEach(s => row.append(seatButton(s)));
+        rowsEl.append(row);
+      });
+      const cur = rowsEl.querySelector('.cur');
+      if (cur) cur.scrollIntoView({ block: 'nearest', inline: 'center' });
+      return;
+    }
+    const sec = SEC[mapSec];
+    Object.keys(sec.rows).map(Number).sort((a, b) => a - b).forEach(r => {
+      const row = document.createElement('div'); row.className = 'srow';
+      const rl = document.createElement('span'); rl.className = 'rl'; rl.textContent = r + '열';
+      row.append(rl);
+      sec.rows[r].forEach(s => row.append(seatButton(s)));
+      rowsEl.append(row);
+    });
+    const cur = rowsEl.querySelector('.cur');
+    if (cur) cur.scrollIntoView({ block: 'nearest', inline: 'center' });
+  }
+  function setSeatMap(open) {
+    seatMap.hidden = !open; seatMapBtn.setAttribute('aria-expanded', String(open));
+    if (open) { closePanel(); if (currentSeat) mapSec = tabOf(currentSeat.sec); renderSeatMap(); }
+  }
+  seatMapBtn.addEventListener('click', () => setSeatMap(seatMap.hidden));
+  $('#seatmapClose').addEventListener('click', () => setSeatMap(false));
+  $('#seatPrev').addEventListener('click', () => stepSeat(0, -1));
+  $('#seatNext').addEventListener('click', () => stepSeat(0, 1));
+
+  /* ---------- seat links, QR and ticket hand-off ---------- */
+  const shareBox = $('#sharebox'), shareBtn = $('#shareBtn');
+  const selfHosted = /(\.netlify\.app|\.github\.io)$/.test(location.hostname);
+  const baseUrl = () => selfHosted ? location.origin + location.pathname : PUBLIC_URL;
+  const seatUrl = s => baseUrl() + (s ? '#seat-' + s.key : '');
+  $('#ticketLink').href = TICKET_URL;
+  function renderShare() {
+    const url = seatUrl(currentSeat);
+    $('#shareTitle').textContent = currentSeat ? `${seatLabel(currentSeat)} 시야 링크` : '공연장 링크';
+    $('#shareUrl').value = url;
+    const qr = $('#shareQr'); qr.innerHTML = '';
+    if (window.QRCode) {
+      try { new QRCode(qr, { text: url, width: 92, height: 92, colorDark: '#15122e', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.M }); }
+      catch (_) { qr.textContent = 'QR을 만들 수 없어요'; }
+    } else qr.textContent = 'QR을 불러오는 중이에요';
+  }
+  function setShare(open) {
+    shareBox.hidden = !open; shareBtn.setAttribute('aria-expanded', String(open));
+    if (open) { renderShare(); if (currentSeat) logEvent(`좌석 링크 열기 · ${seatLabel(currentSeat)}`); }
+  }
+  shareBtn.addEventListener('click', () => setShare(shareBox.hidden));
+  $('#shareClose').addEventListener('click', () => setShare(false));
+  $('#copyBtn').addEventListener('click', () => {
+    const input = $('#shareUrl');
+    const done = () => { toast('링크를 복사했어요'); metrics.inter++; renderKPI(); };
+    const fallback = () => { input.focus(); input.select(); toast('링크를 선택해 뒀어요 · 길게 눌러 복사하세요'); };
+    try { navigator.clipboard.writeText(input.value).then(done, fallback); } catch (_) { fallback(); }
+  });
+  $('#ticketLink').addEventListener('click', () => {
+    metrics.conv++; metrics.inter++;
+    logEvent(currentSeat ? `예매처로 이동 · ${seatLabel(currentSeat)} 확인 후` : '예매처로 이동');
+    renderKPI();
+  });
+  const _updateSeatUI = updateSeatUI;
+  updateSeatUI = function () { _updateSeatUI(); if (!shareBox.hidden) renderShare(); };
+
+  function seatFromHash() {
+    const m = /^#seat-(1L|1R|2SL|2SR|2C|3C)-(\d+)-(\d+)$/.exec(location.hash || '');
+    return m ? findSeat(m[1], +m[2], +m[3]) : null;
+  }
+  addEventListener('hashchange', () => { const s = seatFromHash(); if (s && s !== currentSeat) sitSeat(s); });
+
+  const linked = seatFromHash();
+  if (linked) { sitSeat(linked, { instant: true, silent: true }); metrics.seats.add(linked.key); logEvent(`링크로 입장 · ${seatLabel(linked)}`); }
+  else sitSeat(findSeat('2C', 2, 21), { instant: true, silent: true });
+
+  try { console.info('%c명화라이브홀 메타버스 · ' + CREDIT, 'color:#ffb347;font-weight:700'); } catch (_) {}
+  showSiteVisits();
+  if (currentSeat) showSeatViews(currentSeat.key);
+  setInterval(() => { showSiteVisits(); if (currentSeat) showSeatViews(currentSeat.key); }, 120000);
+  renderKPI();
+  requestAnimationFrame(loop);
+})();
+</script>
+
+</body>
+</html>
