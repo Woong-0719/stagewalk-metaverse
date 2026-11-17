@@ -97,7 +97,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .poster { position: relative; aspect-ratio: 16 / 10; max-width: 100%; background: #f3f5fa; border-bottom: 1px solid #eef0f4; }
 .plan-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
 .poster .now { position: absolute; left: 14px; top: 14px; background: var(--blue); color: #fff; font: 700 12px var(--f); padding: 5px 11px; border-radius: 999px; }
-.vbody { display: grid; gap: 10px; padding: 18px 20px 20px; grid-template-rows: auto auto auto 1fr auto; }
+.vbody { display: grid; gap: 10px; padding: 18px 20px 20px; grid-template-rows: auto auto 1fr auto; }
 .vtags { flex-wrap: nowrap; overflow: hidden; }
 .vtags li { white-space: nowrap; }
 .vbody h4 { margin: 0; font: 900 24px var(--f); letter-spacing: -0.04em; }
@@ -107,7 +107,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .vtags li.hl { background: var(--blue-soft); color: var(--blue); }
 .price { display: flex; align-items: baseline; gap: 6px; font-size: 13px; color: var(--muted); }
 .price b { font: 900 20px var(--f); color: var(--fg); letter-spacing: -0.03em; }
-.vfoot { align-self: end; justify-content: flex-end !important; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-top: 12px; border-top: 1px solid var(--line); flex-wrap: wrap; }
+.vfoot { align-self: end; justify-content: flex-end !important; border-top: 0 !important; padding-top: 4px !important; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-top: 12px; border-top: 1px solid var(--line); flex-wrap: wrap; }
 .credit { font-size: 12.5px; color: var(--muted); }
 .credit strong { color: var(--fg); }
 .go { background: var(--blue); color: #fff; font: 800 14.5px var(--f); padding: 11px 18px; border-radius: 14px; white-space: nowrap; }
@@ -217,8 +217,6 @@ tbody tr:last-child th, tbody tr:last-child td { border-bottom: 0; }
         <div class="vbody">
           <h4>인스파이어 아레나</h4>
           <p class="loc">인천 영종도 · K팝 콘서트 엔드 스테이지 배치</p>
-          <ul class="vtags"><li class="hl">좌석표 착석</li><li>1~3층 15,000석</li><li>4분할 시야</li><li>부스 5곳</li></ul>
-          <div class="price"><span>1층 R석</span><b>154,000원</b><span>예시 가격</span></div>
           <div class="vfoot"><span class="go">입장하기</span></div>
         </div>
       </a>
@@ -229,8 +227,6 @@ tbody tr:last-child th, tbody tr:last-child td { border-bottom: 0; }
         <div class="vbody">
           <h4>명화라이브홀</h4>
           <p class="loc">중소형 라이브홀 · 1층 스탠딩 + 2·3층 지정석</p>
-          <ul class="vtags"><li class="hl">좌석표 착석</li><li>1~3층 라이브홀</li><li>좌석 링크·QR</li><li>부스 4곳</li></ul>
-          <div class="price"><span>2층 정면석</span><b>2열 21번</b><span>에서 시작</span></div>
           <div class="vfoot"><span class="go">입장하기</span></div>
         </div>
       </a>
