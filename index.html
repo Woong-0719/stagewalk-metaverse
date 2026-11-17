@@ -190,7 +190,7 @@ tbody tr:last-child th, tbody tr:last-child td { border-bottom: 0; }
         <span class="ring" style="width:240px;height:240px;right:-70px;bottom:-110px"></span>
         <div class="kicker">무대 코앞 스탠딩부터</div>
         <h2>명화라이브홀</h2>
-        <p>스탠딩 + 2층 지정석 · 부스 4곳<br>제작 박진우 · 새 탭에서 열려요</p>
+        <p>스탠딩 + 2층 지정석 · 부스 4곳<br>제작 박진우 · ↗ 새 탭에서 열려요</p>
       </a>
     </div>
     <div class="pager">
@@ -331,6 +331,30 @@ tbody tr:last-child th, tbody tr:last-child td { border-bottom: 0; }
   });
   if (reduce) $('#pp').textContent = '▶';
   start();
+  // never open the wrong venue: pause while the pointer is on the banner,
+  // and ignore a click if the slide changed (or was still moving) after the press
+  const hero = document.querySelector('.hero'); let pressIdx = -1, movingUntil = 0, hover = false;
+  const showOrig = show;
+  const guardShow = i => { showOrig(i); movingUntil = performance.now() + 650; };
+  clearInterval(timer);
+  const start2 = () => { clearInterval(timer); if (playing) timer = setInterval(() => { if (!hover) guardShow(idx + 1); }, 6000); };
+  hero.addEventListener('pointerenter', () => { hover = true; });
+  hero.addEventListener('pointerleave', () => { hover = false; });
+  hero.addEventListener('focusin', () => { hover = true; });
+  hero.addEventListener('focusout', () => { hover = false; });
+  hero.addEventListener('pointerdown', () => { pressIdx = idx; hover = true; });
+  document.querySelectorAll('.slide').forEach((sl, i) => sl.addEventListener('click', e => {
+    if (i !== idx || (pressIdx !== -1 && pressIdx !== idx) || performance.now() < movingUntil) { e.preventDefault(); }
+    pressIdx = -1;
+  }));
+  $('#next').replaceWith($('#next').cloneNode(true));
+  $('#next').addEventListener('click', () => { guardShow(idx + 1); start2(); });
+  $('#pp').replaceWith($('#pp').cloneNode(true));
+  $('#pp').addEventListener('click', () => {
+    playing = !playing; $('#pp').textContent = playing ? '❚❚' : '▶';
+    $('#pp').setAttribute('aria-label', playing ? '자동 넘김 멈춤' : '자동 넘김 시작'); start2();
+  });
+  start2();
 
   // jumps
   const jump = id => { const el = document.getElementById(id); if (el) el.scrollIntoView({ block: 'start' }); };
