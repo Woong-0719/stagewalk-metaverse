@@ -79,7 +79,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .notice span:last-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* shortcut grid */
-.shortcuts { display: grid; grid-template-columns: repeat(6, 1fr); gap: 18px 10px; }
+.shortcuts { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px 10px; }
 .sc { display: grid; justify-items: center; gap: 8px; text-decoration: none; border: 0; background: none; padding: 0; cursor: pointer; color: var(--fg); position: relative; }
 .sc .ic { width: 78px; height: 78px; border-radius: 26px; background: #f6f7fa; border: 1px solid #eef0f4; display: grid; place-items: center; transition: transform .2s; }
 .sc:hover .ic { transform: translateY(-3px); }
@@ -122,7 +122,7 @@ thead th { font-size: 13px; font-weight: 800; }
 thead th.mh { color: #d4660f; } thead th.ia { color: var(--blue); }
 tbody th { color: var(--muted); font-weight: 500; width: 17%; white-space: nowrap; }
 tbody tr:last-child th, tbody tr:last-child td { border-bottom: 0; }
-#vTitle, #cmp, #top { scroll-margin-top: 150px; }
+#vTitle, #top { scroll-margin-top: 150px; }
 .fineprint { margin: 0; font-size: 12.5px; color: var(--muted); line-height: 1.6; }
 
 /* bottom tab bar */
@@ -142,7 +142,7 @@ tbody tr:last-child th, tbody tr:last-child td { border-bottom: 0; }
   .search input { font-size: 14.5px; }
   .chips button { font-size: 15.5px; padding: 8px 14px; }
   .hero { aspect-ratio: 1 / 0.68; border-radius: 24px; }
-  .shortcuts { grid-template-columns: repeat(3, 1fr); }
+  .shortcuts { grid-template-columns: repeat(4, 1fr); gap: 16px 6px; }
   .sc .ic { width: 68px; height: 68px; border-radius: 22px; }
   .sc .ic svg { width: 40px; height: 40px; }
   .sc b { font-size: 14px; }
@@ -169,7 +169,6 @@ tbody tr:last-child th, tbody tr:last-child td { border-bottom: 0; }
       <span class="sep" aria-hidden="true"></span>
       <button type="button" data-f="ia" aria-pressed="false">아레나</button>
       <button type="button" data-f="mh" aria-pressed="false">라이브홀</button>
-      <button type="button" data-f="cmp" aria-pressed="false">비교하기<span class="beta">Beta</span></button>
     </nav>
   </header>
 
@@ -203,8 +202,6 @@ tbody tr:last-child th, tbody tr:last-child td { border-bottom: 0; }
     <a class="sc" href="inspire.html"><span class="ic"><svg viewBox="0 0 48 48" aria-hidden="true"><defs><linearGradient id="g2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6ff2cf"/><stop offset="1" stop-color="#20b3a0"/></linearGradient></defs><ellipse cx="24" cy="30" rx="19" ry="11" fill="url(#g2)"/><ellipse cx="24" cy="28" rx="12" ry="6" fill="#e9fffa"/><rect x="17" y="12" width="14" height="10" rx="2" fill="#3b4cf5"/><path d="M24 22v6" stroke="#3b4cf5" stroke-width="3"/></svg></span><b>아레나</b></a>
     <a class="sc" href="myunghwa.html"><span class="ic"><svg viewBox="0 0 48 48" aria-hidden="true"><defs><linearGradient id="g3" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffc06a"/><stop offset="1" stop-color="#ff7a2f"/></linearGradient></defs><circle cx="19" cy="17" r="9" fill="url(#g3)"/><path d="M24 22 38 37" stroke="#7b5cf6" stroke-width="6" stroke-linecap="round"/><circle cx="19" cy="17" r="4" fill="#fff" opacity=".5"/></svg></span><b>라이브홀</b></a>
     <a class="sc" href="inspire.html"><span class="ic"><svg viewBox="0 0 48 48" aria-hidden="true"><rect x="7" y="7" width="15" height="15" rx="4" fill="#ff8fb6"/><rect x="26" y="7" width="15" height="15" rx="4" fill="#8a7bff"/><rect x="7" y="26" width="15" height="15" rx="4" fill="#6ff2cf"/><rect x="26" y="26" width="15" height="15" rx="4" fill="#ffc06a"/></svg></span><b>4분할 보기</b></a>
-    <button type="button" class="sc" data-jump="cmp"><span class="badge">NEW</span><span class="ic"><svg viewBox="0 0 48 48" aria-hidden="true"><rect x="8" y="24" width="7" height="16" rx="3" fill="#a9b2ff"/><rect x="20" y="14" width="7" height="26" rx="3" fill="#3b4cf5"/><rect x="32" y="20" width="7" height="20" rx="3" fill="#ff9a3d"/></svg></span><b>행동 지표</b></button>
-    <button type="button" class="sc" data-jump="cmp"><span class="ic"><svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="17" cy="24" r="11" fill="#ff9a3d"/><circle cx="31" cy="24" r="11" fill="#3b4cf5" opacity=".85"/><text x="24" y="28.5" text-anchor="middle" font-family="Noto Sans KR, sans-serif" font-weight="900" font-size="11" fill="#fff">VS</text></svg></span><b>비교하기</b></button>
   </nav>
 
   <section aria-labelledby="vTitle" style="display:grid;gap:14px">
@@ -233,31 +230,13 @@ tbody tr:last-child th, tbody tr:last-child td { border-bottom: 0; }
     </div>
     <p class="fineprint" id="noMatch" hidden>검색한 공연장이 없어요. '인스파이어'나 '명화'로 찾아 보세요.</p>
   </section>
-
-  <section class="compare" id="cmp" aria-labelledby="cmpTitle">
-    <div class="sec-head"><h3 id="cmpTitle">두 메타버스 비교</h3><span>마케팅 지표 관점</span></div>
-    <div class="tbl">
-      <table>
-        <thead><tr><th scope="col"></th><th scope="col" class="mh">명화라이브홀</th><th scope="col" class="ia">인스파이어 아레나</th></tr></thead>
-        <tbody>
-          <tr><th scope="row">공간 유형</th><td>라이브홀 · 스탠딩 중심</td><td>다목적 아레나 · 지정석 중심</td></tr>
-          <tr><th scope="row">시작 위치</th><td>2층 정면석 2열 21번</td><td>오로라 거리 (리조트 몰)</td></tr>
-          <tr><th scope="row">층 구성</th><td>1층 스탠딩·좌석 · 2층 사이드·정면 · 3층</td><td>플로어 스탠딩 · 1층 가변석 · 2층 · 3층</td></tr>
-          <tr><th scope="row">좌석 시야</th><td>좌석표 착석 · W/S/A/D로 옮겨 앉기 · 시점 8곳 · 좌석 링크/QR</td><td>구역도 59곳 + 좌석표 착석 · W/S/A/D로 옮겨 앉기 · 4분할 시야</td></tr>
-          <tr><th scope="row">부스 전환</th><td>구매 · 쿠폰 · 알림</td><td>좌석 예매 · 응원봉 구매 · 쿠폰 · 패키지 알림 · UGC 챌린지</td></tr>
-          <tr><th scope="row">행동 지표</th><td>체류시간 · 시야 확인 좌석 · 부스 방문 · 전환율</td><td>같은 지표 + 고객 여정 4단계 · 구역별 체류 · 좌석별 시야 기록</td></tr>
-        </tbody>
-      </table>
-    </div>
-    <p class="fineprint">두 페이지 모두 비공식 학생 프로젝트예요. 명화라이브홀은 박진우 님(경기대학교 경영학과)이 만든 원본을 그대로 담았어요.</p>
-  </section>
 </main>
 
 <nav class="tabbar" aria-label="메뉴">
   <button type="button" data-jump="vTitle"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h9M4 12h6M4 18h9"/><circle cx="16.5" cy="11.5" r="4"/><path d="m19.5 14.5 2.5 2.5"/></svg><span>공연장</span></button>
   <a href="inspire.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 11V6a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v5"/><path d="M4 11h16v4H4z"/><path d="M6 15v5M18 15v5"/></svg><span>좌석 시야</span></a>
   <button type="button" class="home" data-jump="top"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg><span>홈</span></button>
-  <button type="button" data-jump="cmp"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span>비교</span></button>
+  <a href="inspire.html"><svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="14" rx="9" ry="5.5"/><ellipse cx="12" cy="13" rx="4.5" ry="2.4"/><path d="M9 4h6v4H9z"/></svg><span>아레나</span></a>
   <a href="myunghwa.html"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="4"/><path d="m12 11 7 8"/></svg><span>라이브홀</span></a>
 </nav>
 
@@ -314,7 +293,6 @@ tbody tr:last-child th, tbody tr:last-child td { border-bottom: 0; }
   document.querySelectorAll('.chips [data-f]').forEach(b => b.addEventListener('click', () => {
     document.querySelectorAll('.chips [data-f]').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
     const f = b.dataset.f;
-    if (f === 'cmp') { filter(() => true); jump('cmp'); return; }
     filter(v => f === 'all' || f === 'all-venues' || v.classList.contains(f));
     if (f !== 'all') jump('vTitle');
   }));
