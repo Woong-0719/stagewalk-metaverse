@@ -7,8 +7,8 @@
  * 테이블과 함수는 supabase-setup.sql을 SQL Editor에서 한 번 실행하면 만들어져요.
  */
 (function () {
-  const SUPABASE_URL = '';
-  const SUPABASE_ANON_KEY = '';
+  const SUPABASE_URL = 'https://qzgspcglpjihlwpbkcwj.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF6Z3NwY2dscGppaGx3cGJrY3dqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTUwMjM3OTUsImV4cCI6MjExMDU5OTc5NX0.RjrVqkrMlrF-evhdcugHwieKKFY594FZCMm41bHRmRw';
 
   const on = !!(SUPABASE_URL && SUPABASE_ANON_KEY) && /^https?:$/.test(location.protocol);
   const base = SUPABASE_URL.replace(/\/+$/, '');
