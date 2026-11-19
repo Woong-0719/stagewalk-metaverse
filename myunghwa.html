@@ -460,7 +460,7 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid 
   <button class="right" data-dir="right" aria-label="오른쪽">▶</button>
 </div>
 
-<footer class="hud credit"><span class="visits" id="visits" aria-live="polite">누적 방문자 <b id="visitCount">—</b>명</span><strong>© 2026 박진우</strong> · 경기대학교 경영학과<span class="note">비공식 학생 프로젝트 · 무단 복제·재배포 금지</span></footer>
+<footer class="hud credit"><span class="visits" id="visits" aria-live="polite">누적 방문 <b id="visitCount">—</b>회</span><strong>© 2026 박진우</strong> · 경기대학교 경영학과<span class="note">비공식 학생 프로젝트 · 무단 복제·재배포 금지</span></footer>
 
 <div class="hint"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> 이동 · <kbd>Shift</kbd> 빠르게<br>좌석에선 <kbd>W</kbd><kbd>S</kbd> 앞뒤 줄 · <kbd>A</kbd><kbd>D</kbd> 옆자리 · 의자 클릭으로 착석</div>
 
@@ -473,6 +473,7 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid 
 </nav>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="sw-stats.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
 /*!
@@ -483,49 +484,28 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid 
 (() => {
   const CREDIT = '© 2026 박진우 · 경기대학교 경영학과';
 
-  /* ---------- 방문자·페이지 조회수 기록 (GoatCounter) ----------
-   * goatcounter.com에서 만든 코드 이름을 아래에 넣으면 기록이 시작돼요.
-   * 예: 주소가 https://myunghwa-live.goatcounter.com 이면 'myunghwa-live'
-   * 시점·좌석·부스를 볼 때마다 가상 페이지(/view/…, /seat/…, /booth/…)로 조회수가 쌓여요. */
-  const GC_CODE = 'YOUR-CODE';
-  const GC_ON = GC_CODE && GC_CODE !== 'YOUR-CODE' && /^https?:$/.test(location.protocol);
-  const GC_BASE = `https://${GC_CODE}.goatcounter.com`;
-  const gcQueue = [];
-  if (GC_ON) {
-    const s = document.createElement('script');
-    s.async = true; s.src = 'https://gc.zgo.at/count.js';
-    s.setAttribute('data-goatcounter', GC_BASE + '/count');
-    s.addEventListener('load', () => { while (gcQueue.length) track(...gcQueue.shift()); });
-    document.head.appendChild(s);
-  }
-  // 앱 안에서 본 화면 하나하나를 '페이지 조회'로 기록
-  function track(path, title) {
-    if (!GC_ON) return;
-    const gc = window.goatcounter;
-    if (!gc || typeof gc.count !== 'function') { gcQueue.push([path, title]); return; }
-    try { gc.count({ path: '/' + path, title: title || path }); } catch (_) {}
-  }
-  // 공개 카운터에서 숫자 읽기 (GoatCounter 설정에서 'Allow adding visitor counts on your website'를 켜야 보여요)
-  const gcCache = {};
+  /* ---------- 방문자·페이지 조회수 기록 (Supabase · sw-stats.js) ----------
+   * sw-stats.js에 Supabase 주소와 공개 키를 넣으면 기록이 시작돼요.
+   * 페이지 열기, 시점·좌석·부스·전환을 볼 때마다 기록(/view/…, /seat/…, /booth/…)이 쌓여요. */
+  const SW_ON = !!(window.SW && window.SW.on);
+  function track(path) { if (SW_ON) window.SW.track('myunghwa', path); }
   function readCount(path) {
-    if (!GC_ON) return Promise.resolve(null);
-    if (gcCache[path] && Date.now() - gcCache[path].t < 60000) return Promise.resolve(gcCache[path].v);
-    return fetch(`${GC_BASE}/counter/${encodeURIComponent(path)}.json`, { cache: 'no-store' })
-      .then(r => r.ok ? r.json() : null)
-      .then(j => { const v = j && j.count != null ? String(j.count) : null; gcCache[path] = { t: Date.now(), v }; return v; })
-      .catch(() => null);
+    if (!SW_ON) return Promise.resolve(null);
+    const p = path === location.pathname ? '/' : String(path).replace(/^\//, '');
+    return window.SW.count('myunghwa', p).then(v => (v == null ? null : Number(v).toLocaleString('ko-KR')));
   }
   function showSiteVisits() {
     const note = document.getElementById('gNote');
-    if (!GC_ON) { note.textContent = '방문 기록이 꺼져 있어요 · 사용방법.txt의 GoatCounter 설정을 마치면 켜져요'; document.getElementById('visits').textContent = '방문자 집계 준비 중'; return; }
-    note.textContent = '방문·조회수는 몇 분~30분 간격으로 갱신돼요';
+    if (!SW_ON) { note.textContent = '방문 기록이 꺼져 있어요 · sw-stats.js에 Supabase 주소와 키를 넣으면 켜져요'; document.getElementById('visits').textContent = '방문자 집계 준비 중'; return; }
+    note.textContent = '방문·조회수는 Supabase에 바로 쌓여요 · 2분마다 갱신';
     readCount(location.pathname).then(v => { if (v != null) document.getElementById('visitCount').textContent = v; });
   }
   function showSeatViews(seatKey) {
     const el = document.getElementById('gSeat');
-    if (!GC_ON || !seatKey) { el.textContent = '—'; return; }
-    readCount('/seat/' + seatKey).then(v => { el.textContent = v != null ? v + '회' : '첫 조회'; });
+    if (!SW_ON || !seatKey) { el.textContent = '—'; return; }
+    readCount('/seat/' + seatKey).then(v => { el.textContent = v != null && v !== '0' ? v + '회' : '첫 조회'; });
   }
+  track('/');
   // 예매 페이지 주소: 실제 공연이 정해지면 그 공연 상품 페이지 주소로 바꾸세요
   const TICKET_URL = 'https://tickets.interpark.com/';
   // 공유 링크의 기본 주소: Netlify에 올리면 그 주소가 자동으로 쓰여요

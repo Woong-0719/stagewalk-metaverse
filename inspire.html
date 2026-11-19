@@ -379,7 +379,7 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid 
       <div><dt>인터랙션</dt><dd id="kInter">0</dd></div>
       <div class="cv"><dt>전환 (예매·구매·신청)</dt><dd id="kConv">0</dd></div>
       <div class="cv"><dt>방문 대비 전환율</dt><dd><span id="kRate">0</span><small> %</small></dd></div>
-      <div class="wide"><dt>이 자리 시야 조회</dt><dd id="kHere">—</dd><p class="kn">이 브라우저에서 지금 자리를 확인한 횟수예요</p></div>
+      <div class="wide"><dt>이 자리 시야 조회</dt><dd id="kHere">—</dd><p class="kn" id="kHereNote">이 브라우저에서 지금 자리를 확인한 횟수예요</p></div>
     </dl>
     <div class="log-title">이벤트 로그</div>
     <ul class="log" id="log"><li class="empty">아직 기록된 행동이 없어요. 부스로 걸어가 보세요.</li></ul>
@@ -487,6 +487,7 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid 
 <div class="hud credit"><strong>STAGE WALK</strong> · 인스파이어 아레나<span class="note">비공식 학생 프로젝트 · 인스파이어와 무관 · 공연·가격은 예시</span></div>
 <div class="hud hint"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> 이동 · <kbd>Shift</kbd> 달리기 · <kbd>E</kbd> 부스<br>좌석에선 <kbd>W</kbd><kbd>S</kbd> 앞뒤 열 · <kbd>A</kbd><kbd>D</kbd> 옆자리 · 의자 클릭으로 착석</div>
 
+<script src="sw-stats.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
@@ -1246,7 +1247,15 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid 
   }
   let toastT = 0;
   function toast(html) { const t = $('#toast'); t.innerHTML = html.replace('</b> · ', '</b>'); t.hidden = false; toastT = 3.6; }
-  let curPlace = '오로라 거리';
+  let curPlace = '오로라 거리', booting = true;
+  // Supabase 방문 기록 (sw-stats.js에 주소·키를 넣으면 켜짐)
+  const SW_ON = !!(window.SW && window.SW.on);
+  const swTrack = path => { if (SW_ON) window.SW.track('inspire', path); };
+  const seatPath = hk => 'seat/' + hk.slice(1).replace(/^seat-/, '');   // '#seat-208-C-8' → 'seat/208-C-8', '#floor-C' → 'seat/floor-C'
+  function showHere(hk) {
+    if (!SW_ON || !hk) return;
+    window.SW.count('inspire', seatPath(hk)).then(v => { if (v != null && hk === seatHash()) $('#kHere').textContent = Number(v) ? `${Number(v).toLocaleString('ko-KR')}회` : '첫 조회'; });
+  }
   function renderKPI() {
     $('#kDwell').textContent = fmt(M.dwell);
     $('#kVisit').textContent = M.visits.size;
@@ -1262,7 +1271,7 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid 
   function openBooth(b) {
     if (innerWidth < 760) closeSeat();
     openB = b; M.inter++;
-    if (!M.visits.has(b.id)) { M.visits.add(b.id); log(`부스 방문 · ${b.name}`); }
+    if (!M.visits.has(b.id)) { M.visits.add(b.id); log(`부스 방문 · ${b.name}`); swTrack('booth/' + b.id); }
     const hexc = '#' + b.color.toString(16).padStart(6, '0');
     $('#pKind').textContent = b.kind; $('#pKind').style.setProperty('--kc', hexc);
     $('#pTitle').textContent = b.title; $('#pDesc').textContent = b.desc;
@@ -1278,7 +1287,7 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid 
   $('#pCta').addEventListener('click', () => {
     const b = openB; if (!b || M.convs.has(b.id)) return;
     M.convs.add(b.id); M.inter++;
-    log(`전환 · ${b.conv}`, true);
+    log(`전환 · ${b.conv}`, true); swTrack('convert/' + b.id);
     $('#pCta').disabled = true; $('#pCta').textContent = '완료됨';
     $('#pDone').hidden = false; $('#pDone').textContent = b.done;
     b.ring.material.color.setHex(0xeaf6f3);
@@ -1569,6 +1578,8 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid 
     $('#kSeat').textContent = seenSeats.size + [...seatViewed].filter(id => /^[A-Z]$/.test(id)).length;
     const hk = seatHash(); hereCount.set(hk, (hereCount.get(hk) || 0) + 1);
     $('#kHere').textContent = `${hereCount.get(hk)}회`;
+    if (!booting) swTrack(seatPath(hk));
+    showHere(hk);
     if (!$('#seat').hidden && sec.Lv && panelTab !== 'map' && panelTab !== String(sec.Lv.n)) { panelSec = sec; showTab(String(sec.Lv.n)); }
     else if (sec.Lv) panelSec = sec;
     try { history.replaceState(null, '', hk); } catch (_) {}
@@ -1584,7 +1595,7 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid 
   function bookSeat() {
     if (!seatSel || M.convs.has('ticket')) { if (!seatSel) toast('<b>예매</b> 먼저 좌석을 골라 주세요'); return; }
     M.visits.add('ticket'); M.convs.add('ticket'); M.inter++;
-    log(`전환 · 좌석 예매 ${$('#sId').textContent}`, true);
+    log(`전환 · 좌석 예매 ${$('#sId').textContent}`, true); swTrack('convert/seat-ticket');
     BOOTHS.find(b => b.id === 'ticket').ring.material.color.setHex(0xeaf6f3);
     ['#sCta', '#shareTicket'].forEach(id => { $(id).disabled = true; $(id).textContent = '예매 완료됨'; });
     renderKPI();
@@ -1700,7 +1711,7 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid 
   /* ---------- HUD controls ---------- */
   document.querySelectorAll('[data-view]').forEach(btn => btn.addEventListener('click', () => {
     if (seatSel) { P.eye = EYE; clearSeatHighlight(); }
-    goView(btn.dataset.view); M.inter++; log(`시점 이동 · ${btn.textContent}`); renderKPI();
+    goView(btn.dataset.view); M.inter++; log(`시점 이동 · ${btn.textContent}`); swTrack('view/' + btn.dataset.view); renderKPI();
   }));
   let showOn = true, stickBoost = 0;
   $('#showBtn').addEventListener('click', () => {
@@ -1767,6 +1778,8 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid 
     M.inter = 0; M.log.length = 0;
     $('#log').innerHTML = '<li class="empty">아직 기록된 행동이 없어요. 부스로 걸어가 보세요.</li>';
     $('#kSeat').textContent = '0'; $('#kHere').textContent = '—';
+    booting = false; swTrack('/'); showHere(seatHash());
+    if (SW_ON) $('#kHereNote').textContent = '모든 방문자가 이 자리를 본 횟수예요 · Supabase 기록';
     renderSeatChart();
   })();
   renderKPI();

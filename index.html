@@ -97,11 +97,16 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .poster { position: relative; aspect-ratio: 16 / 10; max-width: 100%; background: #f3f5fa; border-bottom: 1px solid #eef0f4; }
 .plan-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
 .poster .now { position: absolute; left: 14px; top: 14px; background: var(--blue); color: #fff; font: 700 12px var(--f); padding: 5px 11px; border-radius: 999px; }
-.vbody { display: grid; gap: 10px; padding: 18px 20px 20px; grid-template-rows: auto auto 1fr auto; }
+.vbody { display: grid; gap: 10px; padding: 18px 20px 20px; grid-template-rows: auto auto auto 1fr; }
+.vbody .vfoot { grid-row: -2 / -1; }
 .vtags { flex-wrap: nowrap; overflow: hidden; }
 .vtags li { white-space: nowrap; }
 .vbody h4 { margin: 0; font: 900 24px var(--f); letter-spacing: -0.04em; }
 .vbody .loc { margin: 0; font-size: 14px; color: var(--muted); }
+.vstat { margin: 0; font-size: 13px; color: var(--muted); }
+.vstat b { color: var(--blue); font-weight: 800; font-variant-numeric: tabular-nums; }
+.notice a { margin-left: auto; flex: none; font: 700 13px var(--f); color: var(--blue); text-decoration: none; padding: 6px 12px; border-radius: 999px; background: #fff; }
+.notice a:hover { background: var(--blue-soft); }
 .vtags { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
 .vtags li { font: 700 12.5px var(--f); padding: 5px 10px; border-radius: 8px; background: var(--sunken); color: #4b505b; }
 .vtags li.hl { background: var(--blue-soft); color: var(--blue); }
@@ -195,7 +200,7 @@ tbody tr:last-child th, tbody tr:last-child td { border-bottom: 0; }
     </div>
   </section>
 
-  <div class="notice"><span class="tag">공지</span><span>비공식 학생 컨셉 프로젝트예요 · 공연명과 가격은 예시이며 실제 예매는 되지 않아요</span></div>
+  <div class="notice"><span class="tag">공지</span><span>비공식 학생 컨셉 프로젝트예요 · 공연명과 가격은 예시이며 실제 예매는 되지 않아요</span><a href="stats.html">방문 통계 →</a></div>
 
   <nav class="shortcuts" aria-label="바로가기">
     <a class="sc" href="inspire.html"><span class="badge">지금 체험</span><span class="ic"><svg viewBox="0 0 48 48" aria-hidden="true"><defs><linearGradient id="g1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8a7bff"/><stop offset="1" stop-color="#3b4cf5"/></linearGradient></defs><path d="M12 22V14a5 5 0 0 1 5-5h14a5 5 0 0 1 5 5v8" fill="url(#g1)"/><rect x="8" y="22" width="32" height="9" rx="4" fill="#5b6bff"/><rect x="12" y="31" width="4" height="9" rx="2" fill="#2c38c9"/><rect x="32" y="31" width="4" height="9" rx="2" fill="#2c38c9"/></svg></span><b>좌석 시야</b></a>
@@ -214,6 +219,7 @@ tbody tr:last-child th, tbody tr:last-child td { border-bottom: 0; }
         <div class="vbody">
           <h4>인스파이어 아레나</h4>
           <p class="loc">인천 영종도 · K팝 콘서트 엔드 스테이지 배치</p>
+          <p class="vstat" id="vs-inspire" hidden></p>
           <div class="vfoot"><span class="go">입장하기</span></div>
         </div>
       </a>
@@ -224,6 +230,7 @@ tbody tr:last-child th, tbody tr:last-child td { border-bottom: 0; }
         <div class="vbody">
           <h4>명화라이브홀</h4>
           <p class="loc">중소형 라이브홀 · 1층 스탠딩 + 2·3층 지정석</p>
+          <p class="vstat" id="vs-myunghwa" hidden></p>
           <div class="vfoot"><span class="go">입장하기</span></div>
         </div>
       </a>
@@ -240,8 +247,17 @@ tbody tr:last-child th, tbody tr:last-child td { border-bottom: 0; }
   <a href="myunghwa.html"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="4"/><path d="m12 11 7 8"/></svg><span>라이브홀</span></a>
 </nav>
 
+<script src="sw-stats.js"></script>
 <script>
 (() => {
+  // Supabase 방문 기록: 시작 페이지 열기 + 카드에 공연장별 누적 입장 수
+  if (window.SW && SW.on) {
+    SW.track('home', '/');
+    SW.stats().then(rows => (rows || []).forEach(r => {
+      const el = document.getElementById('vs-' + r.page); if (!el) return;
+      el.innerHTML = `누적 <b>${Number(r.views).toLocaleString('ko-KR')}</b>회 입장 · 오늘 <b>${Number(r.today).toLocaleString('ko-KR')}</b>회`; el.hidden = false;
+    }));
+  }
   const $ = s => document.querySelector(s);
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   // hero carousel
